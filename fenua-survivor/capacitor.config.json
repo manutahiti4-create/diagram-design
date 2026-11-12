@@ -1,0 +1,8 @@
+{
+  "appId": "pf.fenua.survivor",
+  "appName": "Fenua Survivor",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0b3d4a"
+  }
+}
