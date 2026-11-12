@@ -1,0 +1,5 @@
+# Cloudflare Pages — utilisé uniquement pour un déploiement en ligne de commande (npx wrangler pages deploy).
+# Avec le déploiement automatique depuis GitHub (recommandé), ce fichier est facultatif.
+name = "fenuamatch"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
