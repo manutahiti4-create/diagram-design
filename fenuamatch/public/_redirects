@@ -1,0 +1,2 @@
+# Cloudflare Pages : toutes les routes de l'application renvoient vers index.html (SPA).
+/*    /index.html   200

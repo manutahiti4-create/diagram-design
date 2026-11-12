@@ -480,7 +480,7 @@ begin
   insert into public.messages (conversation_id, sender_id, kind, body)
   values (v_conversation, v_profile.id, 'system',
           'Proposition envoyée pour « ' || v_listing.title || ' »'
-          || case when p_price_xpf is not null then ' — prix indicatif : ' || to_char(p_price_xpf, 'FM999G999G999') || ' F CFP' else '' end
+          || case when p_price_xpf is not null then ' — prix indicatif : ' || regexp_replace(p_price_xpf::text, '(\d)(?=(\d{3})+$)', '\1 ', 'g') || ' F CFP' else '' end
           || E'\n\n' || trim(p_message));
 
   perform private.notify(v_listing.client_id, 'proposal_received', 'Nouvelle proposition',

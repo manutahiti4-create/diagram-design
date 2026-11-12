@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+
+/* Thème FenuaMatch. Pour un futur thème sombre : redéfinir ces variables sous [data-theme='dark']. */
+@theme {
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: Poppins, 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+
+  --color-brand: #00b8a9;        /* Turquoise principal (fonds, accents) */
+  --color-brand-50: #e6f8f6;
+  --color-brand-100: #c2efea;
+  --color-brand-strong: #00796f; /* Turquoise foncé : texte/liens sur blanc (contraste AA) */
+  --color-navy: #0f2a5a;         /* Bleu marine */
+  --color-navy-700: #1b3d7a;
+  --color-surface: #f5f8fa;      /* Fond clair */
+  --color-ink: #2d2d2d;          /* Texte foncé */
+  --color-muted: #5b6573;
+  --color-line: #e3e8ee;
+  --color-danger: #c62828;
+  --color-danger-50: #fdecec;
+  --color-warning: #8a5a00;
+  --color-warning-50: #fff5e0;
+  --color-success: #1b7f3b;
+  --color-success-50: #e8f6ed;
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(15 42 90 / 0.06), 0 4px 16px rgb(15 42 90 / 0.06);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  h1, h2, h3 {
+    @apply font-display text-navy;
+    line-height: 1.25;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility safe-top {
+  padding-top: env(safe-area-inset-top);
+}
