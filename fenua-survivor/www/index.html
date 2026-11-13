@@ -26,7 +26,8 @@ canvas{display:block;position:fixed;inset:0}
 #bossbar{display:none;margin:8px auto 0;max-width:320px;text-align:center;font-weight:900;font-size:13px;text-shadow:0 2px 3px rgba(0,0,0,.8)}
 #bossbar .b{height:10px;background:rgba(0,0,0,.5);border-radius:6px;overflow:hidden;margin-top:3px;border:1px solid rgba(255,255,255,.3)}
 #bossbar .b i{display:block;height:100%;background:linear-gradient(90deg,#ff4d6d,#ff9a3c)}
-.ov{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,30,38,.88);z-index:10;padding:20px;text-align:center;overflow-y:auto}
+.ov{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;background:rgba(6,30,38,.92);z-index:10;padding:calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 24px);text-align:center;overflow-y:auto}
+.ov>:first-child{margin-top:auto}.ov>:last-child{margin-bottom:auto}
 .ov h1{font-size:32px;margin:0 0 6px;letter-spacing:-.5px}
 .ov h2{font-size:24px;margin:0 0 10px}
 .ov p{margin:4px 0;opacity:.88;line-height:1.45;max-width:360px}
@@ -43,7 +44,7 @@ canvas{display:block;position:fixed;inset:0}
 .cardu .l{font-size:12px;font-weight:800;color:#ff5a3a}
 .cardu .d{font-size:13px;color:#56676c;margin-top:2px}
 .cardu .v{font-size:11px;color:#8a6d00;margin-top:3px;font-weight:700}
-.btnrow{display:flex;gap:8px;justify-content:center}
+.btnrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .stats{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 16px;margin-top:10px;min-width:250px}
 .stats div{display:flex;justify-content:space-between;gap:20px;padding:4px 0;font-weight:700}
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px;max-width:380px}
@@ -66,6 +67,18 @@ canvas{display:block;position:fixed;inset:0}
 .ov.lock button{pointer-events:none}
 .ov.lock .cards,.ov.lock .big{opacity:.55}
 .cards,.big{transition:opacity .2s}
+.guide{width:100%;max-width:440px;text-align:left;margin-top:8px}
+.guide details{background:rgba(255,255,255,.08);border-radius:14px;margin:8px 0;padding:2px 12px}
+.guide summary{font-weight:900;font-size:17px;padding:12px 0;cursor:pointer}
+.guide .gp{font-size:14px;opacity:.9;margin:6px 0 8px;max-width:none;text-align:left}
+.gi{display:flex;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08);font-size:14px;line-height:1.4}
+.gi .e{font-size:24px;width:34px;flex:none;text-align:center}
+.gi b{display:block}.gi small{opacity:.8;font-size:13px}
+#powBtn{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 26px);width:70px;height:70px;border-radius:50%;border:3px solid rgba(255,255,255,.5);background:rgba(0,0,0,.45);font-size:34px;pointer-events:auto;display:none;place-items:center;color:#fff;padding:0;overflow:hidden}
+#powBtn i{position:absolute;inset:0;border-radius:50%}
+#powBtn .t{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;font-weight:900;text-shadow:0 2px 3px #000}
+#powBtn.ready{border-color:#ffc23d;box-shadow:0 0 18px #ffc23d}
+#loadout{font-size:14px;opacity:.8}
 </style>
 </head>
 <body>
@@ -76,6 +89,7 @@ canvas{display:block;position:fixed;inset:0}
   <div class="row"><span id="lvl">Niv. 1</span><span id="time">0:00</span><span id="kills">💀 0</span><span id="hgold" style="color:#ffc23d">🪙 0</span><button id="pauseBtn">II</button></div>
   <div id="weaps"></div>
   <div id="bossbar"><span id="bossname"></span><div class="b"><i id="bossf"></i></div></div>
+  <button id="powBtn"><i id="powCd"></i><span id="powE"></span><span class="t" id="powT"></span></button>
 </div>
 <div id="toast"></div>
 
@@ -87,17 +101,19 @@ canvas{display:block;position:fixed;inset:0}
   <div class="lbl">Arme de départ</div><div class="chips" id="wChips"></div>
   <div class="stats" id="bestBox"></div>
   <button class="big" id="playBtn">JOUER</button>
-  <button class="ghost" id="shopBtn">🛍️ Boutique</button>
+  <div class="btnrow"><button class="ghost" id="shopBtn">🛍️ Boutique</button><button class="ghost" id="guideBtn">📖 Guide</button></div>
+  <p id="loadout"></p>
   <div class="chips" id="optChips"></div>
   <button class="ghost" id="installBtn" style="display:none">📲 Installer l'appli</button>
   <p style="font-size:13px;margin-top:12px;opacity:.65">Glisse le doigt pour bouger · ton héros attaque seul</p>
 </div>
-<div class="ov" id="shopOv"><h2>🛍️ Boutique</h2><p>Améliorations permanentes pour toutes tes parties</p><div class="gold">🪙 <span id="sgold">0</span></div><div class="shop" id="shopList"></div><button class="big" id="shopBack">RETOUR</button></div>
-<div class="ov" id="lvup"><h2>⭐ Niveau supérieur !</h2><div class="cards" id="cards"></div><div class="btnrow"><button class="ghost" id="rerollBtn">🔄 Relancer</button><button class="ghost" id="skipBtn">Passer (+2 🪙)</button></div></div>
+<div class="ov" id="shopOv"><h2>🛍️ Boutique</h2><div class="gold">🪙 <span id="sgold">0</span></div><div class="chips" id="shopTabs"></div><p id="shopDesc" style="font-size:13px;margin-top:8px"></p><div class="shop" id="shopList"></div><button class="big" id="shopBack">RETOUR</button></div>
+<div class="ov" id="lvup"><h2>⭐ Niveau supérieur !</h2><div class="cards" id="cards"></div><div class="btnrow"><button class="ghost" id="rerollBtn">🔄 Relancer</button><button class="ghost" id="skipBtn">Passer (+2 🪙)</button><button class="ghost" id="autoBtn">🤖 Auto</button></div></div>
 <div class="ov" id="chestOv"><h1>🎁</h1><h2 id="chestT">Coffre !</h2><div class="cards" id="chestList"></div><button class="big" id="chestBtn">SUPER !</button></div>
-<div class="ov" id="pause"><h2>⏸️ Pause</h2><div class="build" id="buildBox"></div><button class="big" id="resumeBtn">CONTINUER</button><button class="ghost" id="quitBtn">Abandonner</button></div>
+<div class="ov" id="pause"><h2>⏸️ Pause</h2><div class="build" id="buildBox"></div><button class="big" id="resumeBtn">CONTINUER</button><button class="ghost" id="pGuideBtn">📖 Guide</button><button class="ghost" id="quitBtn">Abandonner</button></div>
 <div class="ov" id="over"><h1 id="overT">💀 Tu es tombé…</h1><div class="stats" id="overStats"></div><p id="newRec" style="color:#ffc23d;font-weight:900;font-size:18px"></p><button class="big" id="againBtn">REJOUER</button><button class="ghost" id="menuBtn">Menu</button></div>
 <div class="ov" id="victory"><h1>🏆 VICTOIRE !</h1><p>Tu as survécu 20 minutes. L'île est sauvée… pour l'instant.</p><p style="margin-top:10px"><b>Mode infini :</b> les monstres deviennent de plus en plus forts sans limite. Jusqu'où iras-tu ?</p><button class="big" id="contBtn">CONTINUER</button><button class="ghost" id="endBtn">Terminer la partie</button></div>
+<div class="ov" id="guideOv"><h2>📖 Guide du jeu</h2><p style="font-size:13px">Touche une section pour l'ouvrir</p><div class="guide" id="guideBox"></div><button class="big" id="guideBack">RETOUR</button></div>
 
 <script>
 // ================= ÉCRAN =================
@@ -124,10 +140,14 @@ const MODES=[
 const STAGE_LEN=240,VICTORY=1200;
 const STAGES=[
  {name:'🏖️ La Plage',bg:'#ecd9a8',dot:'#b8996a',dec:['🌿','🐚'],pool:['crab','scorp','bat']},
- {name:'🌴 La Forêt',bg:'#a9c98f',dot:'#6f9a5c',dec:['🌴','🍃'],pool:['scorp','bat','boar','zombie']},
+ {name:'🌴 La Forêt',bg:'#a9c98f',dot:'#6f9a5c',dec:['🌴','🍃'],pool:['scorp','bat','boar','zombie','nono']},
  {name:'🌋 Le Volcan',bg:'#8a5442',dot:'#5a3326',dec:['🪨','🔥'],pool:['boar','demon','skull','puffer']},
  {name:'🌊 Les Abysses',bg:'#3a6896',dot:'#24476f',dec:['🫧','🐚'],pool:['squid','jelly','puffer','ghost']},
- {name:'🌑 La Nuit des Tūpāpaʻu',bg:'#3d3052',dot:'#251c33',dec:['🪦','🕯️'],pool:['ghost','skull','demon','squid','jelly','zombie','boar']}];
+ {name:'🌑 La Nuit des Tūpāpaʻu',bg:'#3d3052',dot:'#251c33',dec:['🪦','🕯️'],pool:['ghost','skull','demon','squid','jelly','zombie','boar']},
+ // zones secrètes du mode infini
+ {name:'🪸 Le Récif de corail',bg:'#5fb8c4',dot:'#3d8f9c',dec:['🪸','🐠'],pool:['reqp','octo','jelly','puffer','nono']},
+ {name:'⛰️ Le Mont Orohena',bg:'#7d8a6a',dot:'#55604a',dec:['🪨','🌿'],pool:['eagle','moko','boar','zombie','demon']},
+ {name:'🌌 Hawaiki, le monde des ancêtres',bg:'#1f2347',dot:'#4a50a0',dec:['✨','🌟'],pool:['mask','ghost','skull','eagle','reqp','octo','demon']}];
 const ET={
  crab:{e:'🦀',r:14,hp:10,spd:55,dmg:8,xp:1},
  scorp:{e:'🦂',r:13,hp:9,spd:100,dmg:6,xp:1},
@@ -140,11 +160,20 @@ const ET={
  squid:{e:'🦑',r:17,hp:40,spd:55,dmg:10,xp:4,ai:'shoot'},
  jelly:{e:'🪼',r:18,hp:50,spd:40,dmg:10,xp:3,ai:'split'},
  minij:{e:'🪼',r:11,hp:14,spd:65,dmg:6,xp:1},
- ghost:{e:'👻',r:15,hp:28,spd:85,dmg:10,xp:2}};
+ ghost:{e:'👻',r:15,hp:28,spd:85,dmg:10,xp:2},
+ nono:{e:'🦟',r:9,hp:5,spd:145,dmg:4,xp:1,wob:1},
+ reqp:{e:'🦈',r:16,hp:45,spd:70,dmg:14,xp:3,ai:'charge'},
+ octo:{e:'🐙',r:17,hp:45,spd:55,dmg:10,xp:4,ai:'shoot'},
+ eagle:{e:'🦅',r:15,hp:30,spd:125,dmg:12,xp:2,wob:1},
+ moko:{e:'🦎',r:13,hp:20,spd:135,dmg:9,xp:2},
+ mask:{e:'👺',r:19,hp:140,spd:50,dmg:20,xp:6}};
 const BOSSES=[
  {e:'🦈',name:'Requin géant',r:42,hp:450,spd:58,dmg:20,ai:'charge'},
  {e:'🦑',name:'Kraken',r:46,hp:650,spd:45,dmg:25,ai:'nova'},
- {e:'🐲',name:'Taniwha le dragon',r:48,hp:850,spd:55,dmg:30,ai:'dragon'}];
+ {e:'🐲',name:'Taniwha le dragon',r:48,hp:850,spd:55,dmg:30,ai:'dragon'},
+ {e:'🗿',name:'Tiki géant',r:48,hp:750,spd:42,dmg:30,ai:'nova'},
+ {e:'🐋',name:'Baleine sacrée',r:54,hp:800,spd:50,dmg:32,ai:'charge'},
+ {e:'👺',name:'Roi des Tūpāpaʻu',r:46,hp:850,spd:60,dmg:34,ai:'dragon',summon:'ghost'}];
 
 const WEAP={
  shell:{e:'🐚',name:'Coquillages',desc:"Tire sur l'ennemi le plus proche",evo:'power',evoName:'Conque de Maui'},
@@ -154,7 +183,11 @@ const WEAP={
  harpoon:{e:'🔱',name:'Harpon',desc:'Transperce tout dans ta direction',evo:'speed',evoName:'Trident de Ruahatu'},
  boomer:{e:'🪃',name:'Boomerang',desc:'Part, frappe et revient',evo:'magnet',evoName:'Boomerang céleste'},
  wave:{e:'🌊',name:'Raz-de-marée',desc:'Onde qui repousse les ennemis',evo:'hp',evoName:'Tsunami'},
- lava:{e:'☄️',name:'Pluie de lave',desc:'Des rochers en feu tombent du ciel',evo:'luck',evoName:'Éruption du Mauna'}};
+ lava:{e:'☄️',name:'Pluie de lave',desc:'Des rochers en feu tombent du ciel',evo:'luck',evoName:'Éruption du Mauna'},
+ tiki:{e:'🗿',name:'Tiki gardien',desc:'Pose des totems qui tirent sur les monstres proches',evo:'armor',evoName:'Marae ancestral'},
+ shark:{e:'🦈',name:'Requins',desc:'Des requins chassent les monstres tout seuls',evo:'growth',evoName:'Roi des requins'},
+ pearl:{e:'⚫',name:'Perles noires',desc:'Rebondissent d’un monstre à l’autre',evo:'amount',evoName:'Perle de Hawaiki'},
+ cyclone:{e:'🌀',name:'Cyclone',desc:'Des tornades errent et aspirent les monstres',evo:'wind',evoName:'Ouragan Oli'}};
 // stats niveaux 1 à 8, puis 9 = évolution
 const WT={
  shell:{dmg:[12,16,20,25,31,38,46,56,95],n:[1,1,2,2,3,3,4,4,7],pierce:[1,2,2,3,3,4,4,5,12],cd:[.7,.65,.6,.55,.5,.46,.42,.38,.28]},
@@ -164,7 +197,11 @@ const WT={
  harpoon:{dmg:[30,38,48,60,72,86,100,120,220],n:[1,1,1,2,2,2,3,3,8],cd:[1.4,1.3,1.2,1.1,1,.9,.8,.7,.5]},
  boomer:{dmg:[20,26,32,40,48,58,68,80,140],n:[1,1,2,2,2,3,3,3,6],cd:[2,1.9,1.8,1.7,1.6,1.5,1.4,1.3,1],rad:[240,250,260,270,280,290,300,320,380]},
  wave:{dmg:[15,20,26,33,40,48,58,70,130],cd:[3.5,3.3,3.1,2.9,2.7,2.5,2.3,2.1,1.5],rad:[160,175,190,205,220,240,260,280,420]},
- lava:{dmg:[40,50,60,72,86,100,120,140,260],n:[1,2,2,3,3,4,5,6,10],cd:[3,2.8,2.6,2.4,2.2,2,1.8,1.6,1],rad:[55,58,62,66,70,75,80,85,110]}};
+ lava:{dmg:[40,50,60,72,86,100,120,140,260],n:[1,2,2,3,3,4,5,6,10],cd:[3,2.8,2.6,2.4,2.2,2,1.8,1.6,1],rad:[55,58,62,66,70,75,80,85,110]},
+ tiki:{dmg:[10,13,16,20,25,30,36,44,80],n:[1,1,1,2,2,2,3,3,5],cd:[5,4.8,4.6,4.4,4.2,4,3.8,3.5,3],dur:[5,5,6,6,7,7,8,8,12],fire:[.6,.55,.5,.5,.45,.4,.36,.32,.2]},
+ shark:{dmg:[18,23,29,36,44,53,63,75,140],n:[1,1,2,2,2,3,3,4,6],cd:[2.2,2.1,2,1.9,1.8,1.7,1.6,1.5,1],pierce:[2,2,3,3,4,4,5,6,12]},
+ pearl:{dmg:[14,18,22,27,33,40,48,57,100],n:[1,1,1,2,2,2,3,3,5],cd:[1.8,1.7,1.6,1.5,1.4,1.3,1.2,1.1,.8],bounce:[3,4,4,5,6,6,7,8,15]},
+ cyclone:{dmg:[6,8,10,12,15,18,22,26,45],n:[1,1,1,1,2,2,2,2,3],cd:[6,6,5.5,5.5,5,5,4.5,4.5,3],dur:[4,4.5,4.5,5,5,5.5,6,6.5,9],rad:[40,44,48,52,56,60,64,70,100]}};
 const STATN={dmg:'Dégâts',n:'Nombre',pierce:'Traverse',cd:'Recharge',rad:'Zone',spin:'Vitesse'};
 const PASS={
  speed:{e:'🩴',name:'Sandales',desc:'Vitesse +10 %'},
@@ -176,7 +213,11 @@ const PASS={
  area:{e:'🌸',name:'Collier de fleurs',desc:'Zones +10 %'},
  armor:{e:'🛡️',name:'Carapace de tortue',desc:'Dégâts reçus −7 %'},
  luck:{e:'🍀',name:'Trèfle',desc:'+6 % de coups critiques, plus de trésors'},
- growth:{e:'📚',name:'Sagesse',desc:'XP gagnée +12 %'}};
+ growth:{e:'📚',name:'Sagesse',desc:'XP gagnée +12 %'},
+ amount:{e:'🎯',name:'Œil de Maui',desc:'+1 projectile pour toutes les armes',max:3},
+ wind:{e:'💨',name:'Alizés',desc:'Les monstres sont 6 % plus lents'},
+ coral:{e:'🪸',name:'Peau de corail',desc:'Les monstres qui te touchent se blessent'},
+ nacre:{e:'🦪',name:'Nacre',desc:'+15 % de pièces et plus de trésors'}};
 const WMAX=8,PMAX=5,SLOTS=6;
 const SHOP=[
  {id:'hp',e:'❤️',name:'Vitalité',desc:'+10 % PV max',max:5,base:50},
@@ -187,13 +228,39 @@ const SHOP=[
  {id:'xp',e:'📚',name:'Sagesse',desc:'+8 % XP',max:5,base:60},
  {id:'luck',e:'🍀',name:'Chance',desc:'+4 % coups critiques',max:5,base:60},
  {id:'gold',e:'🪙',name:'Avarice',desc:'+10 % pièces gagnées',max:5,base:50},
+ {id:'cd',e:'🥁',name:'Rythme',desc:'Attaques 3 % plus rapides',max:5,base:70},
+ {id:'area',e:'🌸',name:'Envergure',desc:'+5 % de zone',max:5,base:60},
+ {id:'regen',e:'🧴',name:'Récupération',desc:'+0,3 PV par seconde',max:5,base:50},
+ {id:'pow',e:'🔮',name:'Maîtrise',desc:'Pouvoir spécial : −8 % de recharge',max:5,base:80},
  {id:'reroll',e:'🔄',name:'Relances',desc:'+1 relance par partie',max:5,base:80},
+ {id:'choice',e:'🃏',name:'Plus de choix',desc:'+1 carte à chaque niveau',max:1,base:1500},
  {id:'revive',e:'🗿',name:'Tiki protecteur',desc:'+1 résurrection par partie',max:2,base:400}];
 const shopCost=(it,lv)=>Math.floor(it.base*Math.pow(lv+1,1.6));
+const SKINS=[
+ {id:'toa',e:'🧑🏽',name:'Toa',cost:0},{id:'vahine',e:'👩🏽',name:'Vahine',cost:150},{id:'tane',e:'🧔🏽',name:'Tāne barbu',cost:250},
+ {id:'surf',e:'🏄🏽',name:'Surfeur',cost:400},{id:'ninja',e:'🥷🏽',name:'Ninja',cost:500},{id:'triton',e:'🧜🏽‍♂️',name:'Triton',cost:700},
+ {id:'honu',e:'🐢',name:'Honu la tortue',cost:800},{id:'hero',e:'🦸🏽',name:'Super-héros',cost:1000},{id:'tahua',e:'🧙🏽',name:'Tahuʻa le sage',cost:1200},
+ {id:'arii',e:'🤴🏽',name:'Ariʻi le roi',cost:1500},{id:'robot',e:'🤖',name:'Robo-Toa',cost:2000},{id:'dragon',e:'🐉',name:'Dragon',cost:3000}];
+const POWERS={
+ magnet:{e:'🧲',name:'Appel de la marée',desc:'Attire tous les cristaux et pièces de la carte',cd:35,cost:150},
+ shield:{e:'🛡️',name:'Bouclier de Maui',desc:'Invincible pendant 6 secondes',cd:45,cost:250},
+ heal:{e:'🍃',name:'Rongoā',desc:'Soigne 50 % de tes PV',cd:50,cost:300},
+ freeze:{e:'❄️',name:'Souffle de Hina',desc:'Fige tous les monstres pendant 6 secondes',cd:55,cost:350},
+ volcano:{e:'🌋',name:'Éruption',desc:'Détruit les monstres à l’écran (boss : −15 % PV)',cd:70,cost:500}};
+const powMult=()=>1-.08*(SAVE.shop.pow||0);
+const BLESS=[
+ {e:'💪',name:'Force de Maui',desc:'Dégâts +5 %',f:()=>P.dmg*=1.05},
+ {e:'❤️',name:'Souffle de vie',desc:'PV max +8 % et soigne 20 %',f:()=>{P.mhp*=1.08;P.hp=Math.min(P.mhp,P.hp+P.mhp*.2)}},
+ {e:'🥁',name:'Rythme du pahu',desc:'Attaques 3 % plus rapides',f:()=>P.cd=Math.max(.3,P.cd*.97)},
+ {e:'🌸',name:'Parfum du tiare',desc:'Zones +4 %',f:()=>P.area*=1.04},
+ {e:'🩴',name:'Pas léger',desc:'Vitesse +3 %',f:()=>P.spd=Math.min(400,P.spd*1.03)},
+ {e:'🧴',name:'Huile sacrée',desc:'+0,4 PV par seconde',f:()=>P.regen+=.4},
+ {e:'🍀',name:'Bonne étoile',desc:'Coups critiques +2 %',f:()=>P.crit=Math.min(.8,P.crit+.02)},
+ {e:'🪙',name:'Trésor caché',desc:'+8 pièces',f:()=>runGold+=8}];
 
 // ================= SAUVEGARDE =================
 const SKEY='fenuaSurv2';
-let SAVE={gold:0,shop:{},best:{},won:{},mode:0,w:'shell',sound:1,vib:1};
+let SAVE={gold:0,shop:{},best:{},won:{},mode:0,w:'shell',sound:1,vib:1,skins:{toa:1},skin:'toa',pows:{},power:'',auto:0};
 try{const d=JSON.parse(localStorage.getItem(SKEY));if(d)SAVE=Object.assign(SAVE,d)}catch(e){}
 function persist(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE))}catch(e){}}
 
@@ -223,20 +290,21 @@ function sfx(k){
 function vib(ms){if(!SAVE.vib)return;try{navigator.vibrate&&navigator.vibrate(ms)}catch(_){}}
 
 // ================= ÉTAT =================
-let state='menu',MODE,P,en,proj,eb,gems,picks,fx,parts,rings,blasts,gt,kills,lvl,xp,wl,pl,tm,spawnAcc,nextBoss,bossIdx,nextWave,lvQueue,joy,lastTime,hurtUI=0,curStage,won,runGold,rerolls,chestQueue;
+let state='menu',MODE,P,en,proj,eb,gems,picks,fx,parts,rings,blasts,gt,kills,lvl,xp,wl,pl,tm,spawnAcc,nextBoss,bossIdx,nextWave,lvQueue,joy,lastTime,hurtUI=0,curStage,won,runGold,rerolls,chestQueue,tot,cyc,frz,powT,heroE;
 function newGame(){
   MODE=MODES[SAVE.mode];const g=id=>SAVE.shop[id]||0;
-  P={x:0,y:0,r:14,mhp:120*(1+.1*g('hp')),spd:155*(1+.05*g('spd')),mag:90*(1+.15*g('mag')),regen:0,dmg:1+.06*g('dmg'),cd:1,area:1,
+  P={x:0,y:0,r:14,mhp:120*(1+.1*g('hp')),spd:155*(1+.05*g('spd')),mag:90*(1+.15*g('mag')),regen:.3*g('regen'),dmg:1+.06*g('dmg'),cd:1-.03*g('cd'),area:1+.05*g('area'),amount:0,slow:1,thorn:0,shield:0,
      armor:.03*g('arm'),crit:.05+.04*g('luck'),luck:0,xpm:1+.08*g('xp'),goldm:1+.1*g('gold'),revives:g('revive'),inv:0,face:1,fx:1,fy:0};
   P.hp=P.mhp;rerolls=1+g('reroll');
-  en=[];proj=[];eb=[];gems=[];picks=[];fx=[];parts=[];rings=[];blasts=[];
+  en=[];proj=[];eb=[];gems=[];picks=[];fx=[];parts=[];rings=[];blasts=[];tot=[];cyc=[];frz=0;powT=0;heroE=(SKINS.find(s=>s.id===SAVE.skin)||SKINS[0]).e;
   gt=0;kills=0;lvl=1;xp=0;spawnAcc=0;nextBoss=150;bossIdx=0;nextWave=60;lvQueue=0;curStage=0;won=false;runGold=0;chestQueue=0;
   wl={};tm={};for(const k in WEAP){wl[k]=0;tm[k]=0.3}wl[SAVE.w]=1;
   pl={};for(const k in PASS)pl[k]=0;
   joy={on:false,id:null,ox:0,oy:0,x:0,y:0};
 }
 const need=l=>Math.floor(5+l*3+Math.pow(l,1.65));
-const ws=(k,f)=>WT[k][f][wl[k]-1];
+const ws=(k,f)=>{const l=wl[k],v=WT[k][f][Math.min(l,9)-1];return f==='dmg'&&l>9?v*(1+.15*(l-9)):v};
+const wn=k=>ws(k,'n')+P.amount;
 function sc(){const m=gt/60;let s=1+m*0.6+Math.pow(m/5,3)*5;if(gt>VICTORY)s*=Math.pow(1.25,(gt-VICTORY)/30);return s*MODE.hp}
 function dsc(){return (1+gt/200+Math.pow(gt/600,2))*MODE.dmg*(gt>VICTORY?Math.pow(1.1,(gt-VICTORY)/30):1)}
 
@@ -246,7 +314,7 @@ addEventListener('pointermove',e=>{if(joy&&joy.on&&e.pointerId===joy.id){joy.x=e
 function endJoy(e){if(joy&&e.pointerId===joy.id)joy.on=false}
 addEventListener('pointerup',endJoy);addEventListener('pointercancel',endJoy);
 const keys={};
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key==='Escape'||e.key==='p')togglePause()});
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key==='Escape'||e.key==='p')togglePause();if(e.key===' '||e.key==='e')usePower()});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
 
 // ================= GRILLE (collisions rapides) =================
@@ -268,12 +336,12 @@ function spawn(type,o={}){
 function spawnBoss(){
   const B=BOSSES[bossIdx%BOSSES.length],a=Math.random()*TAU,d=Math.hypot(W,H)/2+60;
   const hp=B.hp*sc()*(1+bossIdx*0.6);bossIdx++;
-  en.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d,r:B.r,hp,mhp:hp,spd:B.spd,dmg:B.dmg*dsc(),xp:40,e:B.e,ai:B.ai,name:B.name,boss:true,elite:false,
+  en.push({x:P.x+Math.cos(a)*d,y:P.y+Math.sin(a)*d,r:B.r,hp,mhp:hp,spd:B.spd,dmg:B.dmg*dsc(),xp:40,e:B.e,ai:B.ai,name:B.name,summon:B.summon,boss:true,elite:false,
     flash:0,kx:0,ky:0,oh:-9,cd:2,cd2:6,dash:0,wind:0,fuse:0,ph:0,dead:false});
   toast(`${B.e} ${B.name} arrive !`);sfx('boss');vib([80,60,80]);
 }
 function pickType(){
-  if(gt>=VICTORY){const all=Object.keys(ET).filter(k=>k!=='minij');return all[Math.floor(Math.random()*all.length)]}
+  if(gt>=VICTORY&&Math.random()<.3){const all=Object.keys(ET).filter(k=>k!=='minij');return all[Math.floor(Math.random()*all.length)]}
   let pool=STAGES[curStage].pool;if(curStage>0&&Math.random()<0.2)pool=STAGES[curStage-1].pool;
   return pool[Math.floor(Math.random()*pool.length)];
 }
@@ -299,11 +367,11 @@ function moveEnemy(e,dt){
       break;
     case 'dragon':
       e.cd-=dt;if(e.cd<=0){e.cd=2.2;const b=Math.atan2(dy,dx);for(let i=-2;i<=2;i++){const a=b+i*.2;shoot(e.x,e.y,Math.cos(a),Math.sin(a),250,20*dsc(),'fire')}}
-      e.cd2-=dt;if(e.cd2<=0){e.cd2=10;for(let i=0;i<6;i++){const a=i/6*TAU;spawn('skull',{x:e.x+Math.cos(a)*70,y:e.y+Math.sin(a)*70,elite:false})}}
+      e.cd2-=dt;if(e.cd2<=0){e.cd2=10;for(let i=0;i<6;i++){const a=i/6*TAU;spawn(e.summon||'skull',{x:e.x+Math.cos(a)*70,y:e.y+Math.sin(a)*70,elite:false})}}
       break;
   }
   if(e.wob){const w=Math.sin(gt*6+e.ph)*e.spd*.8;vx+=-dy/d*w;vy+=dx/d*w}
-  e.x+=(vx+e.kx)*dt;e.y+=(vy+e.ky)*dt;const f=Math.pow(.02,dt);e.kx*=f;e.ky*=f;e.flash-=dt;
+  e.x+=(vx*P.slow+e.kx)*dt;e.y+=(vy*P.slow+e.ky)*dt;const f=Math.pow(.02,dt);e.kx*=f;e.ky*=f;e.flash-=dt;
 }
 function hurt(e,d,kx,ky){
   if(e.dead)return;if(Math.random()<P.crit)d*=2;
@@ -344,37 +412,59 @@ function damagePlayer(d){
 let toastT;function toast(t){const el=$('toast');el.textContent=t;el.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>el.style.display='none',2400)}
 
 // ================= ARMES =================
-function nearest(maxD){let b=null,bd=maxD*maxD;for(const e of en){if(e.dead)continue;const d=(e.x-P.x)**2+(e.y-P.y)**2;if(d<bd){bd=d;b=e}}return b}
+function nearestFrom(x,y,maxD,skip){let b=null,bd=maxD*maxD;for(const e of en){if(e.dead||(skip&&skip.has(e)))continue;const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b}
+function nearest(maxD){return nearestFrom(P.x,P.y,maxD)}
 function visibleEnemies(){return en.filter(e=>!e.dead&&Math.abs(e.x-P.x)<W/2+20&&Math.abs(e.y-P.y)<H/2+20)}
 function weapons(dt){
   const ready=k=>{if(!wl[k])return false;tm[k]-=dt;if(tm[k]>0)return false;return true};
-  if(ready('shell')){const t=nearest(Math.max(W,H)*.75);if(t){tm.shell=ws('shell','cd')*P.cd;const n=ws('shell','n'),b=Math.atan2(t.y-P.y,t.x-P.x),r=9*Math.sqrt(P.area)*(wl.shell>8?1.4:1);
+  if(ready('shell')){const t=nearest(Math.max(W,H)*.75);if(t){tm.shell=ws('shell','cd')*P.cd;const n=wn('shell'),b=Math.atan2(t.y-P.y,t.x-P.x),r=9*Math.sqrt(P.area)*(wl.shell>8?1.4:1);
     for(let i=0;i<n;i++){const a=b+(i-(n-1)/2)*.17;proj.push({k:'shell',x:P.x,y:P.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,r,dmg:ws('shell','dmg'),pierce:ws('shell','pierce'),life:1.4,hit:new Set()})}}}
-  if(ready('harpoon')){tm.harpoon=ws('harpoon','cd')*P.cd;const n=ws('harpoon','n'),b=Math.atan2(P.fy,P.fx);
+  if(ready('harpoon')){tm.harpoon=ws('harpoon','cd')*P.cd;const n=wn('harpoon'),b=Math.atan2(P.fy,P.fx);
     for(let i=0;i<n;i++){const a=b+i/n*TAU;proj.push({k:'harp',x:P.x,y:P.y,vx:Math.cos(a)*650,vy:Math.sin(a)*650,r:11*Math.sqrt(P.area),dmg:ws('harpoon','dmg'),pierce:9999,life:.9,hit:new Set(),ang:a})}}
-  if(ready('boomer')){const t=nearest(Math.max(W,H)*.6);if(t){tm.boomer=ws('boomer','cd')*P.cd;const n=ws('boomer','n'),b=Math.atan2(t.y-P.y,t.x-P.x);
+  if(ready('boomer')){const t=nearest(Math.max(W,H)*.6);if(t){tm.boomer=ws('boomer','cd')*P.cd;const n=wn('boomer'),b=Math.atan2(t.y-P.y,t.x-P.x);
     for(let i=0;i<n;i++){const a=b+(i-(n-1)/2)*.5;proj.push({k:'boom',x:P.x,y:P.y,dx:Math.cos(a),dy:Math.sin(a),trav:0,range:ws('boomer','rad')*P.area,phase:0,r:14*Math.sqrt(P.area),dmg:ws('boomer','dmg'),pierce:9999,life:4,hit:new Set()})}}}
-  if(ready('zap')){const vis=visibleEnemies();if(vis.length){tm.zap=ws('zap','cd')*P.cd;const n=ws('zap','n'),rad=ws('zap','rad')*P.area,dmg=ws('zap','dmg');
+  if(ready('zap')){const vis=visibleEnemies();if(vis.length){tm.zap=ws('zap','cd')*P.cd;const n=wn('zap'),rad=ws('zap','rad')*P.area,dmg=ws('zap','dmg');
     for(let i=0;i<n&&vis.length;i++){const t=vis.splice(Math.floor(Math.random()*vis.length),1)[0];fx.push({t:'zap',x:t.x,y:t.y,l:.18,m:.18,rad});sfx('zap');
       near(t.x,t.y,rad+30,o=>{const dx=o.x-t.x,dy=o.y-t.y;if(dx*dx+dy*dy<(rad+o.r)**2)hurt(o,dmg,0,0)})}}}
-  if(ready('lava')){const vis=visibleEnemies();if(vis.length){tm.lava=ws('lava','cd')*P.cd;const n=ws('lava','n');
+  if(ready('lava')){const vis=visibleEnemies();if(vis.length){tm.lava=ws('lava','cd')*P.cd;const n=wn('lava');
     for(let i=0;i<n&&vis.length;i++){const t=vis.splice(Math.floor(Math.random()*vis.length),1)[0];blasts.push({x:t.x,y:t.y,t:.7,rad:ws('lava','rad')*P.area,dmg:ws('lava','dmg')})}}}
   if(ready('wave')){tm.wave=ws('wave','cd')*P.cd;rings.push({x:P.x,y:P.y,r:10,max:ws('wave','rad')*P.area,dmg:ws('wave','dmg'),hit:new Set()})}
   if(ready('aura')){tm.aura=.5*P.cd;const rad=ws('aura','rad')*P.area,dmg=ws('aura','dmg');
     near(P.x,P.y,rad+50,e=>{const dx=e.x-P.x,dy=e.y-P.y;if(dx*dx+dy*dy<(rad+e.r)**2)hurt(e,dmg,0,0)});
     if(wl.aura>8)P.hp=Math.min(P.mhp,P.hp+1)}
-  if(wl.orbit){const n=ws('orbit','n'),rad=ws('orbit','rad')*P.area,sp=ws('orbit','spin'),dmg=ws('orbit','dmg'),orr=(wl.orbit>8?17:13);
+  if(wl.orbit){const n=wn('orbit'),rad=ws('orbit','rad')*P.area,sp=ws('orbit','spin'),dmg=ws('orbit','dmg'),orr=(wl.orbit>8?17:13);
     for(let i=0;i<n;i++){const a=gt*sp+i*TAU/n,ox=P.x+Math.cos(a)*rad,oy=P.y+Math.sin(a)*rad;
       near(ox,oy,orr+50,e=>{if(e.dead||gt-e.oh<.4)return;const dx=e.x-ox,dy=e.y-oy;if(dx*dx+dy*dy<(e.r+orr)**2){e.oh=gt;const l=Math.hypot(e.x-P.x,e.y-P.y)||1;hurt(e,dmg,(e.x-P.x)/l*160,(e.y-P.y)/l*160)}})}}
+  // totems tiki
+  if(ready('tiki')){tm.tiki=ws('tiki','cd')*P.cd;const n=wn('tiki');for(let i=0;i<n;i++){const a=Math.random()*TAU;tot.push({x:P.x+Math.cos(a)*45,y:P.y+Math.sin(a)*45,life:ws('tiki','dur'),t:0})}while(tot.length>14)tot.shift()}
+  for(const t of tot){t.life-=dt;t.t-=dt;if(t.t<=0){const e=nearestFrom(t.x,t.y,340);if(e){t.t=ws('tiki','fire')*P.cd;const a=Math.atan2(e.y-t.y,e.x-t.x);
+    proj.push({k:'tk',x:t.x,y:t.y-10,vx:Math.cos(a)*480,vy:Math.sin(a)*480,r:7*Math.sqrt(P.area),dmg:ws('tiki','dmg'),pierce:wl.tiki>8?3:1,life:1,hit:new Set()})}}}
+  tot=tot.filter(t=>t.life>0);
+  // requins
+  if(ready('shark')){const t=nearest(Math.max(W,H)*.8);if(t){tm.shark=ws('shark','cd')*P.cd;const n=wn('shark');
+    for(let i=0;i<n;i++){const a=Math.random()*TAU;proj.push({k:'shark',x:P.x,y:P.y,vx:Math.cos(a)*340,vy:Math.sin(a)*340,r:13*Math.sqrt(P.area),dmg:ws('shark','dmg'),pierce:ws('shark','pierce'),life:3.5,hit:new Set(),tg:null,rt:0})}}}
+  // perles
+  if(ready('pearl')){const t=nearest(Math.max(W,H)*.7);if(t){tm.pearl=ws('pearl','cd')*P.cd;const n=wn('pearl'),b=Math.atan2(t.y-P.y,t.x-P.x);
+    for(let i=0;i<n;i++){const a=b+(i-(n-1)/2)*.3;proj.push({k:'pearl',x:P.x,y:P.y,vx:Math.cos(a)*520,vy:Math.sin(a)*520,r:8*Math.sqrt(P.area),dmg:ws('pearl','dmg'),pierce:ws('pearl','bounce'),life:2,hit:new Set()})}}}
+  // cyclones
+  if(ready('cyclone')){tm.cyclone=ws('cyclone','cd')*P.cd;const n=ws('cyclone','n');for(let i=0;i<n;i++){const a=Math.random()*TAU;cyc.push({x:P.x+Math.cos(a)*60,y:P.y+Math.sin(a)*60,a,life:ws('cyclone','dur'),t:0})}}
+  for(const c of cyc){c.life-=dt;c.a+=rnd(-2,2)*dt;const dx=P.x-c.x,dy=P.y-c.y,dd=Math.hypot(dx,dy)||1;let vx=Math.cos(c.a)*110,vy=Math.sin(c.a)*110;if(dd>250){vx+=dx/dd*90;vy+=dy/dd*90}
+    c.x+=vx*dt;c.y+=vy*dt;c.t-=dt;const rad=ws('cyclone','rad')*P.area;
+    if(c.t<=0){c.t=.25;const dmg=ws('cyclone','dmg');near(c.x,c.y,rad+50,e=>{const ex=c.x-e.x,ey=c.y-e.y,ed=Math.hypot(ex,ey)||1;if(ed<rad+e.r)hurt(e,dmg,ex/ed*90,ey/ed*90)})}}
+  cyc=cyc.filter(c=>c.life>0);
   // projectiles
   for(const p of proj){
     if(p.k==='boom'){
       if(p.phase===0){const s=520*dt;p.x+=p.dx*s;p.y+=p.dy*s;p.trav+=s;if(p.trav>=p.range){p.phase=1;p.hit.clear()}}
       else{const dx=P.x-p.x,dy=P.y-p.y,d=Math.hypot(dx,dy)||1;p.x+=dx/d*620*dt;p.y+=dy/d*620*dt;if(d<20)p.life=0}
-    }else{p.x+=p.vx*dt;p.y+=p.vy*dt}
+    }else{
+      if(p.k==='shark'){p.rt-=dt;if(p.rt<=0||!p.tg||p.tg.dead){p.rt=.25;p.tg=nearestFrom(p.x,p.y,600,p.hit)}
+        if(p.tg){const dx=p.tg.x-p.x,dy=p.tg.y-p.y,d=Math.hypot(dx,dy)||1,s=Math.hypot(p.vx,p.vy)||1;const nx=p.vx/s+dx/d*6*dt,ny=p.vy/s+dy/d*6*dt,nl=Math.hypot(nx,ny)||1;p.vx=nx/nl*380;p.vy=ny/nl*380}}
+      p.x+=p.vx*dt;p.y+=p.vy*dt}
     p.life-=dt;
     near(p.x,p.y,p.r+60,e=>{if(e.dead||p.pierce<=0||p.hit.has(e))return;const dx=e.x-p.x,dy=e.y-p.y;
-      if(dx*dx+dy*dy<(e.r+p.r)**2){p.hit.add(e);const l=Math.hypot(dx,dy)||1;hurt(e,p.dmg,dx/l*120,dy/l*120);p.pierce--}});
+      if(dx*dx+dy*dy<(e.r+p.r)**2){p.hit.add(e);const l=Math.hypot(dx,dy)||1;hurt(e,p.dmg,dx/l*120,dy/l*120);p.pierce--;if(p.k==='pearl')p.bn=1}});
+    if(p.bn){p.bn=0;const o=nearestFrom(p.x,p.y,280,p.hit);if(o){const dx=o.x-p.x,dy=o.y-p.y,d=Math.hypot(dx,dy)||1;p.vx=dx/d*520;p.vy=dy/d*520;p.life=Math.max(p.life,1)}else p.life=0}
   }
   proj=proj.filter(p=>p.life>0&&p.pierce>0);
   for(const r of rings){r.r+=520*dt;near(r.x,r.y,r.r+30,e=>{if(e.dead||r.hit.has(e))return;const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy)||1;
@@ -394,10 +484,10 @@ function update(dt){
   if(keys.a||keys.q||keys.arrowleft)mx-=1;if(keys.d||keys.arrowright)mx+=1;if(keys.w||keys.z||keys.arrowup)my-=1;if(keys.s||keys.arrowdown)my+=1;
   const ml=Math.hypot(mx,my);if(ml>1){mx/=ml;my/=ml}
   P.x+=mx*P.spd*dt;P.y+=my*P.spd*dt;if(ml>.1){P.fx=mx/Math.hypot(mx,my);P.fy=my/Math.hypot(mx,my)}if(mx)P.face=mx<0?-1:1;
-  P.inv=Math.max(0,P.inv-dt);if(P.regen)P.hp=Math.min(P.mhp,P.hp+P.regen*dt);
+  P.inv=Math.max(0,P.inv-dt);P.shield=Math.max(0,P.shield-dt);powT=Math.max(0,powT-dt);if(P.regen)P.hp=Math.min(P.mhp,P.hp+P.regen*dt);
 
   // zones / victoire
-  const st=Math.min(Math.floor(gt/STAGE_LEN),STAGES.length-1);if(st!==curStage){curStage=st;toast(STAGES[st].name)}
+  const st=gt<VICTORY?Math.min(Math.floor(gt/STAGE_LEN),4):5+Math.floor((gt-VICTORY)/STAGE_LEN)%3;if(st!==curStage){curStage=st;toast(STAGES[st].name)}
   if(!won&&gt>=VICTORY){won=true;SAVE.won[SAVE.mode]=1;persist();state='victory';joy.on=false;$('hurt').style.opacity=0;sfx('chest');showOv('victory');return}
 
   // apparitions
@@ -407,18 +497,18 @@ function update(dt){
   if(gt>=nextBoss){nextBoss+=150;spawnBoss()}
 
   // ennemis
-  for(const e of en)if(!e.dead)moveEnemy(e,dt);
+  if(frz>0)frz-=dt;else for(const e of en)if(!e.dead)moveEnemy(e,dt);
   if(state!=='play')return;
   buildGrid();
   for(const e of en){if(e.dead)continue;
     near(e.x,e.y,e.r+30,o=>{if(o===e)return;const ox=e.x-o.x,oy=e.y-o.y,od=ox*ox+oy*oy,rr=e.r+o.r;
       if(od<rr*rr&&od>.01){const dd=Math.sqrt(od),push=(rr-dd)*.25*(e.boss?.1:1);e.x+=ox/dd*push;e.y+=oy/dd*push}});
     const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy);
-    if(e.dmg>0&&d<e.r+P.r-3){damagePlayer(e.dmg);if(state!=='play')return}
+    if(e.dmg>0&&frz<=0&&d<e.r+P.r-3){if(P.thorn&&gt-(e.tt||-9)>.5){e.tt=gt;hurt(e,P.thorn*(1+gt/300),0,0)}damagePlayer(e.dmg);if(state!=='play')return}
     if(d>Math.max(W,H)*1.4&&!e.boss){const a=Math.random()*TAU,r=Math.hypot(W,H)/2+40;e.x=P.x+Math.cos(a)*r;e.y=P.y+Math.sin(a)*r}
   }
   // tirs ennemis
-  for(const b of eb){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if((b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r-4)**2){damagePlayer(b.dmg);b.life=0;if(state!=='play')return}}
+  if(frz<=0)for(const b of eb){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if((b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r-4)**2){damagePlayer(b.dmg);b.life=0;if(state!=='play')return}}
   eb=eb.filter(b=>b.life>0);
   // armes
   weapons(dt);
@@ -431,7 +521,7 @@ function update(dt){
   gems=gems.filter(g=>!g.got);
   while(gems.length>450){const x=gems.shift();gems[0].v+=x.v}
   for(const k of picks){if(k.life!==undefined)k.life-=dt;const dx=P.x-k.x,dy=P.y-k.y,d=Math.hypot(dx,dy)||1;
-    if(k.t==='gold'&&d<P.mag){k.x+=dx/d*450*dt;k.y+=dy/d*450*dt}
+    if(k.t==='gold'&&(d<P.mag||k.pull)){k.x+=dx/d*450*dt;k.y+=dy/d*450*dt}
     if(d<P.r+16){k.got=true;
       if(k.t==='heal'){P.hp=Math.min(P.mhp,P.hp+P.mhp*.3);toast('🍍 +30 % de PV')}
       else if(k.t==='mag'){for(const g of gems)g.m=true;toast('🧲 Tous les cristaux !')}
@@ -457,6 +547,9 @@ function draw(){
   if(wl.aura){const rad=ws('aura','rad')*P.area*(1+Math.sin(gt*6)*.03),ev=wl.aura>8;ctx.fillStyle=ev?'rgba(255,40,40,.2)':'rgba(255,120,40,.17)';ctx.strokeStyle=ev?'rgba(255,40,40,.6)':'rgba(255,90,30,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(P.x,P.y,rad,0,TAU);ctx.fill();ctx.stroke()}
   for(const r of rings){ctx.strokeStyle=`rgba(90,190,255,${.8*(1-r.r/r.max)})`;ctx.lineWidth=wl.wave>8?10:6;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke()}
   for(const b of blasts){ctx.strokeStyle='rgba(255,60,20,.7)';ctx.fillStyle='rgba(255,60,20,.12)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.rad,0,TAU);ctx.fill();ctx.stroke();drawE('☄️',b.x+b.t*120,b.y-b.t*380,16)}
+  for(const t of tot){ctx.globalAlpha=Math.min(1,t.life);drawE('🗿',t.x,t.y,wl.tiki>8?20:16)}ctx.globalAlpha=1;
+  for(const c of cyc){const rad=ws('cyclone','rad')*P.area;ctx.globalAlpha=Math.min(1,c.life);ctx.fillStyle=wl.cyclone>8?'rgba(170,120,255,.2)':'rgba(220,240,255,.2)';ctx.beginPath();ctx.arc(c.x,c.y,rad,0,TAU);ctx.fill();
+    ctx.globalAlpha=Math.min(1,c.life)*.35;ctx.save();ctx.translate(c.x,c.y);ctx.rotate(-gt*10);const s=Math.round(rad*.6);ctx.drawImage(spr('🌀',s),-s,-s,s*2,s*2);ctx.restore()}ctx.globalAlpha=1;
   for(const g of gems){ctx.fillStyle=g.v<3?'#3bd1ff':g.v<10?'#4ade80':'#ff4d6d';const s=g.v<3?5:g.v<10?7:9;ctx.beginPath();ctx.moveTo(g.x,g.y-s);ctx.lineTo(g.x+s*.7,g.y);ctx.lineTo(g.x,g.y+s);ctx.lineTo(g.x-s*.7,g.y);ctx.closePath();ctx.fill()}
   const PE={heal:'🍍',mag:'🧲',gold:'🪙',chest:'🎁'};
   for(const k of picks){if(k.life!==undefined&&k.life<5&&Math.floor(gt*8)%2)continue;const r=k.t==='chest'?20:k.t==='gold'?10:13;
@@ -468,22 +561,28 @@ function draw(){
     let r=e.r;if(e.fuse>0)r*=1+(.7-e.fuse)*.6;
     const flip=e.x<P.x;drawE(e.e,e.x,e.y,r,flip);
     if(e.flash>0){ctx.globalAlpha=.7;drawC(sil(e.e,r,'#fff'),e.x,e.y,r,flip);ctx.globalAlpha=1}
+    else if(frz>0){ctx.globalAlpha=.45;drawC(sil(e.e,r,'#7fd8ff'),e.x,e.y,r,flip);ctx.globalAlpha=1}
     else if(e.wind>0||(e.fuse>0&&Math.floor(gt*14)%2)){ctx.globalAlpha=.55;drawC(sil(e.e,r,'#ff2020'),e.x,e.y,r,flip);ctx.globalAlpha=1}
     if(e.elite&&!e.boss){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(e.x-e.r,e.y-e.r-9,e.r*2,4);ctx.fillStyle='#ffc23d';ctx.fillRect(e.x-e.r,e.y-e.r-9,e.r*2*Math.max(0,e.hp/e.mhp),4)}
   }
-  if(wl.orbit){const n=ws('orbit','n'),rad=ws('orbit','rad')*P.area,sp=ws('orbit','spin'),orr=wl.orbit>8?17:13;for(let i=0;i<n;i++){const a=gt*sp+i*TAU/n;drawE('🥥',P.x+Math.cos(a)*rad,P.y+Math.sin(a)*rad,orr)}}
+  if(wl.orbit){const n=wn('orbit'),rad=ws('orbit','rad')*P.area,sp=ws('orbit','spin'),orr=wl.orbit>8?17:13;for(let i=0;i<n;i++){const a=gt*sp+i*TAU/n;drawE('🥥',P.x+Math.cos(a)*rad,P.y+Math.sin(a)*rad,orr)}}
   for(const p of proj){ctx.save();ctx.translate(p.x,p.y);
     if(p.k==='harp'){ctx.rotate(p.ang+Math.PI/4);ctx.drawImage(spr('🔱',p.r*1.3),-p.r*1.3,-p.r*1.3,p.r*2.6,p.r*2.6)}
+    else if(p.k==='tk'){ctx.fillStyle='#ffd36b';ctx.strokeStyle='#a0521d';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,p.r,0,TAU);ctx.fill();ctx.stroke()}
+    else if(p.k==='pearl'){ctx.fillStyle=wl.pearl>8?'#4a2380':'#15151c';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,p.r,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle='rgba(255,255,255,.8)';ctx.beginPath();ctx.arc(-p.r*.35,-p.r*.35,p.r*.3,0,TAU);ctx.fill()}
+    else if(p.k==='shark'){if(p.vx>0)ctx.scale(-1,1);ctx.rotate(-Math.atan2(p.vy,Math.abs(p.vx)));const s=Math.round(p.r);ctx.drawImage(spr('🦈',s),-s,-s,s*2,s*2)}
     else{ctx.rotate(gt*(p.k==='boom'?18:12));ctx.drawImage(spr(p.k==='boom'?'🪃':'🐚',p.r),-p.r,-p.r,p.r*2,p.r*2)}ctx.restore()}
   for(const b of eb){if(b.k==='fire')drawE('🔥',b.x,b.y,b.r);else{ctx.fillStyle='#3b1f5c';ctx.strokeStyle='#e0c8ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fill();ctx.stroke()}}
-  if(!(P.inv>0&&Math.floor(gt*20)%2)){ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(P.x,P.y+13,12,4,0,0,TAU);ctx.fill();drawE('🧑🏽',P.x,P.y,17,P.face>0)}
+  if(!(P.inv>0&&!P.shield&&Math.floor(gt*20)%2)){ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(P.x,P.y+13,12,4,0,0,TAU);ctx.fill();drawE(heroE,P.x,P.y,17,P.face>0)}
   ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(P.x-20,P.y+20,40,5);ctx.fillStyle=P.hp/P.mhp>.3?'#4ade80':'#ff4d4d';ctx.fillRect(P.x-20,P.y+20,40*Math.max(0,P.hp/P.mhp),5);
+  if(P.shield>0){ctx.strokeStyle='rgba(120,220,255,.9)';ctx.fillStyle='rgba(120,220,255,.18)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(P.x,P.y,30+Math.sin(gt*8)*2,0,TAU);ctx.fill();ctx.stroke()}
   for(const f of fx){const a=f.l/f.m;
     if(f.t==='zap'){ctx.strokeStyle=`rgba(255,255,140,${a})`;ctx.lineWidth=4;ctx.beginPath();let x=f.x+rnd(-20,20),y=f.y-H;ctx.moveTo(x,y);for(let k=1;k<=8;k++){y=f.y-H+H*k/8;x=f.x+(k<8?rnd(-18,18):0);ctx.lineTo(x,y)}ctx.stroke();
       ctx.fillStyle=`rgba(255,255,180,${a*.5})`;ctx.beginPath();ctx.arc(f.x,f.y,f.rad,0,TAU);ctx.fill()}
     else{ctx.fillStyle=`rgba(${f.col},${a*.55})`;ctx.beginPath();ctx.arc(f.x,f.y,f.rad*(1.2-a*.2),0,TAU);ctx.fill()}}
   for(const p of parts){ctx.globalAlpha=p.l/.35;ctx.fillStyle=p.c;ctx.fillRect(p.x-2,p.y-2,4,4)}ctx.globalAlpha=1;
   ctx.restore();
+  if(frz>0){ctx.fillStyle='rgba(120,200,255,.13)';ctx.fillRect(0,0,W,H)}
   // flèches vers les coffres hors écran
   for(const k of picks){if(k.t!=='chest')continue;const sx=k.x-camX,sy=k.y-camY;if(sx>0&&sx<W&&sy>0&&sy<H)continue;
     const cx=W/2,cy=H/2,dx=sx-cx,dy=sy-cy,s=Math.min((W/2-30)/Math.abs(dx||1),(H/2-60)/Math.abs(dy||1));drawE('🎁',cx+dx*s,cy+dy*s,14)}
@@ -496,52 +595,71 @@ function hud(){
   $('xpf').style.width=Math.min(100,xp/need(lvl)*100)+'%';
   if((hudT++)%6)return;
   $('lvl').textContent='Niv. '+lvl;$('time').textContent=fmtT(gt);$('kills').textContent='💀 '+kills;$('hgold').textContent='🪙 '+runGold;
-  let w='';for(const k in WEAP)if(wl[k])w+=`<span>${WEAP[k].e}${wl[k]>8?'🌟':wl[k]}</span>`;for(const k in PASS)if(pl[k])w+=`<span>${PASS[k].e}${pl[k]}</span>`;
+  let w='';for(const k in WEAP)if(wl[k])w+=`<span>${WEAP[k].e}${wl[k]>9?'★'+(wl[k]-9):wl[k]>8?'🌟':wl[k]}</span>`;for(const k in PASS)if(pl[k])w+=`<span>${PASS[k].e}${pl[k]}</span>`;
   if(P.revives)w+=`<span>🗿${P.revives}</span>`;$('weaps').innerHTML=w;
   const b=en.find(e=>e.boss);if(b){$('bossbar').style.display='block';$('bossname').textContent=b.e+' '+b.name;$('bossf').style.width=Math.max(0,b.hp/b.mhp*100)+'%'}else $('bossbar').style.display='none';
+  if(SAVE.power){const mx=POWERS[SAVE.power].cd*powMult();$('powBtn').classList.toggle('ready',powT<=0);$('powCd').style.background=powT>0?`conic-gradient(rgba(0,0,0,.7) ${powT/mx*360}deg,transparent 0)`:'none';$('powT').textContent=powT>0?Math.ceil(powT):''}
 }
 
 // ================= NIVEAUX & COFFRES =================
-const OVS=['menu','shopOv','lvup','chestOv','pause','over','victory'];
+const OVS=['menu','shopOv','lvup','chestOv','pause','over','victory','guideOv'];
 let curOv=null;const LOCKED=['lvup','chestOv','over','victory'];
 function showOv(id){curOv=id;OVS.forEach(o=>{const el=$(o);el.style.display=o===id?'flex':'none';el.classList.remove('lock')});
   // évite de choisir une carte par erreur quand on avait le doigt sur l'écran
   if(LOCKED.includes(id)){const el=$(id);el.classList.add('lock');setTimeout(()=>el.classList.remove('lock'),450)}}
 function counts(){return{w:Object.values(wl).filter(v=>v>0).length,p:Object.values(pl).filter(v=>v>0).length}}
+const pmax=k=>PASS[k].max||PMAX;
+function evoOf(pk){return Object.entries(WEAP).find(([,w])=>w.evo===pk)}
 function choices(){
   const c=counts(),pool=[];
-  for(const k in WEAP)if(wl[k]===0?c.w<SLOTS:wl[k]<WMAX)pool.push({kind:'w',k});
-  for(const k in PASS)if(pl[k]===0?c.p<SLOTS:pl[k]<PMAX)pool.push({kind:'p',k});
-  const n=P.luck>=.75?4:3,out=[];while(out.length<n&&pool.length)out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-  if(!out.length)out.push({kind:'heal'},{kind:'gold'});
+  for(const k in WEAP)if(wl[k]===0?c.w<SLOTS:(wl[k]<WMAX||wl[k]>=9))pool.push({kind:'w',k});
+  for(const k in PASS)if(pl[k]===0?c.p<SLOTS:pl[k]<pmax(k))pool.push({kind:'p',k});
+  const n=Math.min(5,3+(SAVE.shop.choice||0)+(P.luck>=.75?1:0)),out=[];
+  while(out.length<n&&pool.length)out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  // plus rien à améliorer ? des bénédictions infinies complètent
+  const bl=BLESS.slice();while(out.length<n&&bl.length)out.push({kind:'b',b:bl.splice(Math.floor(Math.random()*bl.length),1)[0]});
   return out;
 }
+const NLBL={harpoon:'direction',zap:'éclair',lava:'rocher',orbit:'noix',tiki:'totem',shark:'requin',pearl:'perle',cyclone:'tornade'};
 function statDiff(k,l){const t=WT[k],out=[];for(const f in t){const a=t[f][l-1],b=t[f][l];if(a===b)continue;
-  if(f==='cd')out.push('Plus rapide');else if(f==='dmg')out.push(`Dégâts ${a} → ${b}`);else if(f==='n')out.push(`+${b-a} ${k==='harpoon'?'direction':k==='zap'?'éclair':k==='lava'?'rocher':k==='orbit'?'noix':'projectile'}`);
-  else if(f==='pierce')out.push(`Traverse ${b}`);else if(f==='rad')out.push('Plus grand');else if(f==='spin')out.push('Tourne plus vite')}return out.join(' · ')}
+  if(f==='cd')out.push('Plus fréquent');else if(f==='dmg')out.push(`Dégâts ${a} → ${b}`);else if(f==='n')out.push(`+${b-a} ${NLBL[k]||'projectile'}`);
+  else if(f==='pierce')out.push(`Traverse ${b}`);else if(f==='bounce')out.push(`Rebonds ${b}`);else if(f==='rad')out.push('Plus grand');else if(f==='spin')out.push('Tourne plus vite');
+  else if(f==='dur')out.push('Dure plus longtemps');else if(f==='fire')out.push('Tire plus vite')}return out.join(' · ')}
 function cardHTML(e,l,t,d,v){return `<div class="e">${e}</div><div><div class="l">${l}</div><div class="t">${t}</div><div class="d">${d}</div>${v?`<div class="v">${v}</div>`:''}</div>`}
 function describe(c){
-  if(c.kind==='w'){const D=WEAP[c.k],cur=wl[c.k];return cardHTML(D.e,cur?`Niveau ${cur+1}/${WMAX}`:'NOUVELLE ARME',D.name,cur?statDiff(c.k,cur):D.desc,`Évolution : niv. ${WMAX} + ${PASS[D.evo].e} + coffre de boss`)}
-  if(c.kind==='p'){const D=PASS[c.k],cur=pl[c.k];const ev=Object.entries(WEAP).find(([,w])=>w.evo===c.k);return cardHTML(D.e,cur?`Niveau ${cur+1}/${PMAX}`:'NOUVEL OBJET',D.name,D.desc,ev?`Fait évoluer ${ev[1].e} ${ev[1].name}`:'')}
+  if(c.kind==='w'){const D=WEAP[c.k],cur=wl[c.k];
+    if(cur>=9)return cardHTML(D.e,`🌟 ÉTOILE ★${cur-8}`,D.evoName,'Arme légendaire : dégâts +15 %');
+    const E=PASS[D.evo];return cardHTML(D.e,cur?`Niveau ${cur+1}/${WMAX}`:'NOUVELLE ARME',D.name,cur?statDiff(c.k,cur):D.desc,`Évolution : niv. ${WMAX} + ${E.e} ${E.name} + coffre 🎁`)}
+  if(c.kind==='p'){const D=PASS[c.k],cur=pl[c.k],ev=evoOf(c.k);return cardHTML(D.e,cur?`Niveau ${cur+1}/${pmax(c.k)}`:'NOUVEL OBJET',D.name,D.desc,ev?`Fait évoluer ${ev[1].e} ${ev[1].name} (niv. 8 + coffre)`:'')}
+  if(c.kind==='b')return cardHTML(c.b.e,'✨ BÉNÉDICTION',c.b.name,c.b.desc);
   if(c.kind==='heal')return cardHTML('🍍','BONUS','Ananas','Soigne 50 % de tes PV');
   return cardHTML('🪙','BONUS','Trésor','+5 pièces');
 }
+function cardName(c){if(c.kind==='w')return wl[c.k]>9?WEAP[c.k].evoName+' ★'+(wl[c.k]-9):WEAP[c.k].e+' '+WEAP[c.k].name;if(c.kind==='p')return PASS[c.k].e+' '+PASS[c.k].name;if(c.kind==='b')return c.b.e+' '+c.b.name;return ''}
 function apply(c){
   if(c.kind==='w')wl[c.k]++;
   else if(c.kind==='p'){pl[c.k]++;switch(c.k){
     case 'speed':P.spd*=1.1;break;case 'hp':P.mhp*=1.2;P.hp=Math.min(P.mhp,P.hp+P.mhp*.2);break;case 'regen':P.regen+=.6;break;
     case 'magnet':P.mag*=1.35;break;case 'power':P.dmg*=1.12;break;case 'haste':P.cd*=.92;break;case 'area':P.area*=1.1;break;
-    case 'armor':P.armor+=.07;break;case 'luck':P.crit+=.06;P.luck+=.25;break;case 'growth':P.xpm*=1.12;break}}
+    case 'armor':P.armor+=.07;break;case 'luck':P.crit+=.06;P.luck+=.25;break;case 'growth':P.xpm*=1.12;break;
+    case 'amount':P.amount++;break;case 'wind':P.slow*=.94;break;case 'coral':P.thorn+=25;break;case 'nacre':P.goldm*=1.15;P.luck+=.1;break}}
+  else if(c.kind==='b')c.b.f();
   else if(c.kind==='heal')P.hp=Math.min(P.mhp,P.hp+P.mhp*.5);
   else runGold+=5;
 }
+// choix automatique : privilégie ce qu'on a déjà et les évolutions
+function autoPick(ch){let best=null,bs=-1;for(const c of ch){let s=Math.random();
+  if(c.kind==='w')s+=wl[c.k]>=9?2.5:wl[c.k]>0?3:2.2;else if(c.kind==='p'){s+=pl[c.k]>0?2:1.5;const ev=evoOf(c.k);if(ev&&wl[ev[0]]>0)s+=1}else s+=.5;
+  if(s>bs){bs=s;best=c}}return best}
 function openLevelUp(){
+  if(SAVE.auto){let last=null;while(lvQueue>0){const c=autoPick(choices());if(c){apply(c);last=c}lvQueue--}
+    sfx('lvl');if(last)toast(`⭐ Niv. ${lvl} : ${cardName(last)}`);if(state!=='play')resume();return}
   const ch=choices();
-  if(ch.every(c=>c.kind==='heal'||c.kind==='gold')){P.hp=Math.min(P.mhp,P.hp+P.mhp*.1);runGold+=1;lvQueue=0;resume();return}
   state='lvup';joy.on=false;const box=$('cards');box.innerHTML='';
   for(const c of ch){const b=document.createElement('button');b.className='cardu';b.innerHTML=describe(c);b.onclick=()=>{apply(c);doneLevel()};box.appendChild(b)}
   $('rerollBtn').textContent=`🔄 Relancer (${rerolls})`;$('rerollBtn').disabled=rerolls<1;if(curOv!=='lvup'){sfx('lvl');vib(30)}showOv('lvup');
 }
+$('autoBtn').onclick=()=>{SAVE.auto=1;persist();toast('🤖 Choix auto activé (désactivable dans le menu)');openLevelUp()};
 function doneLevel(){lvQueue--;if(lvQueue>0)openLevelUp();else resume()}
 $('rerollBtn').onclick=()=>{if(rerolls<1)return;rerolls--;openLevelUp()};
 $('skipBtn').onclick=()=>{runGold+=2;doneLevel()};
@@ -564,25 +682,45 @@ function renderMenu(){
   $('mgold').textContent=SAVE.gold;
   $('modeChips').innerHTML=MODES.map((m,i)=>`<button class="chip ${i===SAVE.mode?'on':''}" data-m="${i}">${SAVE.won[i]?'🏆 ':''}${m.name}</button>`).join('');
   $('wChips').innerHTML=Object.entries(WEAP).map(([k,w])=>`<button class="chip ${k===SAVE.w?'on':''}" data-w="${k}">${w.e} ${w.name}</button>`).join('');
-  $('optChips').innerHTML=`<button class="chip ${SAVE.sound?'on':''}" data-o="sound">${SAVE.sound?'🔊':'🔇'} Son</button><button class="chip ${SAVE.vib?'on':''}" data-o="vib">📳 Vibrations</button>`;
+  $('optChips').innerHTML=`<button class="chip ${SAVE.sound?'on':''}" data-o="sound">${SAVE.sound?'🔊':'🔇'} Son</button><button class="chip ${SAVE.vib?'on':''}" data-o="vib">📳 Vibrations</button><button class="chip ${SAVE.auto?'on':''}" data-o="auto">🤖 Choix auto</button>`;
+  const sk=SKINS.find(s=>s.id===SAVE.skin)||SKINS[0],pw=POWERS[SAVE.power];
+  $('loadout').innerHTML=`Héros : ${sk.e} ${sk.name} · Pouvoir : ${pw?pw.e+' '+pw.name:'aucun'}`;
   const b=SAVE.best[SAVE.mode];
   $('bestBox').innerHTML=`<div><span>🏆 Record (${MODES[SAVE.mode].name})</span><span>${b?fmtT(b.t):'—'}</span></div><div><span>💀 Meilleur score</span><span>${b?b.k:'—'}</span></div><div><span>⭐ Meilleur niveau</span><span>${b?b.l:'—'}</span></div>`;
 }
 $('modeChips').onclick=e=>{const b=e.target.closest('[data-m]');if(b){SAVE.mode=+b.dataset.m;persist();renderMenu()}};
 $('optChips').onclick=e=>{const b=e.target.closest('[data-o]');if(b){SAVE[b.dataset.o]=SAVE[b.dataset.o]?0:1;persist();audio();sfx('click');renderMenu()}};
 $('wChips').onclick=e=>{const b=e.target.closest('[data-w]');if(b){SAVE.w=b.dataset.w;persist();renderMenu()}};
+let shopTab='stats';
 function renderShop(){
   $('sgold').textContent=SAVE.gold;
-  $('shopList').innerHTML=SHOP.map(it=>{const lv=SAVE.shop[it.id]||0,max=lv>=it.max,c=shopCost(it,lv);
-    return `<div class="si"><div class="e">${it.e}</div><div class="i"><div class="t">${it.name}</div><div class="d">${it.desc}</div><div class="dots">${'●'.repeat(lv)}${'○'.repeat(it.max-lv)}</div></div>
-    <button data-s="${it.id}" ${max||SAVE.gold<c?'disabled':''}>${max?'MAX':'🪙 '+c}</button></div>`}).join('');
+  $('shopTabs').innerHTML=[['stats','📈 Bonus'],['skins','🎭 Skins'],['pows','✨ Pouvoirs']].map(([k,n])=>`<button class="chip ${k===shopTab?'on':''}" data-t="${k}">${n}</button>`).join('');
+  let h='';
+  if(shopTab==='stats'){$('shopDesc').textContent='Bonus permanents pour toutes tes parties';
+    h=SHOP.map(it=>{const lv=SAVE.shop[it.id]||0,max=lv>=it.max,c=shopCost(it,lv);
+      return `<div class="si"><div class="e">${it.e}</div><div class="i"><div class="t">${it.name}</div><div class="d">${it.desc}</div><div class="dots">${'●'.repeat(lv)}${'○'.repeat(it.max-lv)}</div></div>
+      <button data-s="${it.id}" ${max||SAVE.gold<c?'disabled':''}>${max?'MAX':'🪙 '+c}</button></div>`}).join('')}
+  else if(shopTab==='skins'){$('shopDesc').textContent='Change l’apparence de ton héros (juste pour le style)';
+    h=SKINS.map(s=>{const own=SAVE.skins[s.id],on=SAVE.skin===s.id;
+      return `<div class="si"><div class="e">${s.e}</div><div class="i"><div class="t">${s.name}</div><div class="d">${own?'Débloqué':'Skin'}</div></div><button data-k="${s.id}" ${on||(!own&&SAVE.gold<s.cost)?'disabled':''}>${on?'ÉQUIPÉ':own?'Équiper':'🪙 '+s.cost}</button></div>`}).join('')}
+  else{$('shopDesc').textContent='Un pouvoir à déclencher avec le bouton rond en bas à droite. Un seul équipé à la fois.';
+    h=Object.entries(POWERS).map(([id,p])=>{const own=SAVE.pows[id],on=SAVE.power===id;
+      return `<div class="si"><div class="e">${p.e}</div><div class="i"><div class="t">${p.name}</div><div class="d">${p.desc}</div><div class="d">Recharge : ${Math.round(p.cd*powMult())} s</div></div><button data-p="${id}" ${(!own&&SAVE.gold<p.cost)?'disabled':''}>${on?'Retirer':own?'Équiper':'🪙 '+p.cost}</button></div>`}).join('')}
+  $('shopList').innerHTML=h;
 }
-$('shopList').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;const it=SHOP.find(s=>s.id===b.dataset.s),lv=SAVE.shop[it.id]||0,c=shopCost(it,lv);
-  if(lv>=it.max||SAVE.gold<c)return;SAVE.gold-=c;SAVE.shop[it.id]=lv+1;persist();renderShop()};
+$('shopTabs').onclick=e=>{const b=e.target.closest('[data-t]');if(b){shopTab=b.dataset.t;sfx('click');renderShop()}};
+$('shopList').onclick=e=>{
+  let b=e.target.closest('[data-s]');
+  if(b){const it=SHOP.find(s=>s.id===b.dataset.s),lv=SAVE.shop[it.id]||0,c=shopCost(it,lv);if(lv>=it.max||SAVE.gold<c)return;SAVE.gold-=c;SAVE.shop[it.id]=lv+1;persist();sfx('coin');renderShop();return}
+  b=e.target.closest('[data-k]');
+  if(b){const s=SKINS.find(x=>x.id===b.dataset.k);if(!SAVE.skins[s.id]){if(SAVE.gold<s.cost)return;SAVE.gold-=s.cost;SAVE.skins[s.id]=1}SAVE.skin=s.id;persist();sfx('chest');renderShop();return}
+  b=e.target.closest('[data-p]');
+  if(b){const id=b.dataset.p,p=POWERS[id];if(!SAVE.pows[id]){if(SAVE.gold<p.cost)return;SAVE.gold-=p.cost;SAVE.pows[id]=1;SAVE.power=id}else SAVE.power=SAVE.power===id?'':id;persist();sfx('chest');renderShop()}
+};
 $('shopBtn').onclick=()=>{renderShop();showOv('shopOv')};
 $('shopBack').onclick=()=>{renderMenu();showOv('menu')};
 function showMenu(){state='menu';$('hud').style.display='none';renderMenu();showOv('menu')}
-function start(){audio();newGame();$('hud').style.display='block';showOv(null);state='play';lastTime=performance.now();hudT=0;toast(STAGES[0].name+' — Survis !')}
+function start(){audio();newGame();$('powBtn').style.display=SAVE.power?'grid':'none';$('powE').textContent=SAVE.power?POWERS[SAVE.power].e:'';$('hud').style.display='block';showOv(null);state='play';lastTime=performance.now();hudT=0;toast(STAGES[0].name+' — Survis !')}
 function gameOver(){
   state='over';joy.on=false;$('hurt').style.opacity=0;
   const earned=Math.floor((runGold+Math.floor(gt/60)*10+Math.floor(kills/50))*MODE.gold*P.goldm);
@@ -594,7 +732,7 @@ function gameOver(){
 }
 function togglePause(){
   if(state==='play'){state='pause';joy.on=false;
-    let h='';for(const k in WEAP)if(wl[k])h+=`${WEAP[k].e} ${wl[k]>8?'<b>'+WEAP[k].evoName+'</b> 🌟':WEAP[k].name+' niv. '+wl[k]}<br>`;
+    let h='';for(const k in WEAP)if(wl[k]){const D=WEAP[k],E=PASS[D.evo];h+=wl[k]>8?`${D.e} <b>${D.evoName}</b> 🌟${wl[k]>9?' ★'+(wl[k]-9):''}<br>`:`${D.e} ${D.name} niv. ${wl[k]}/8 <span style="opacity:.7;font-size:13px">· évo : ${E.e} ${pl[D.evo]?'✅':'❌'}</span><br>`}
     for(const k in PASS)if(pl[k])h+=`${PASS[k].e} ${PASS[k].name} niv. ${pl[k]}<br>`;
     $('buildBox').innerHTML=h+`<span style="opacity:.6;font-size:13px">${STAGES[curStage].name}${gt>VICTORY?' · MODE INFINI':''}</span>`;showOv('pause')}
   else if(state==='pause')resume();
@@ -606,9 +744,71 @@ $('contBtn').onclick=()=>{resume();toast('♾️ Mode infini !')};
 $('endBtn').onclick=()=>gameOver();
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')togglePause()});
 
+// ================= POUVOIR SPÉCIAL =================
+function usePower(){
+  if(state!=='play'||!SAVE.power||powT>0)return;const id=SAVE.power;powT=POWERS[id].cd*powMult();
+  if(id==='volcano'){for(const e of visibleEnemies()){if(e.boss){e.hp-=e.mhp*.15;e.flash=.2;if(e.hp<=0)kill(e)}else kill(e)}
+    fx.push({t:'boom',x:P.x,y:P.y,l:.6,m:.6,rad:Math.max(W,H),col:'255,90,20'});sfx('boom');vib([60,40,120])}
+  else if(id==='shield'){P.shield=6;P.inv=Math.max(P.inv,6);sfx('chest')}
+  else if(id==='freeze'){frz=6;sfx('zap')}
+  else if(id==='magnet'){for(const g of gems)g.m=true;for(const k of picks)if(k.t==='gold')k.pull=true;sfx('coin')}
+  else if(id==='heal'){P.hp=Math.min(P.mhp,P.hp+P.mhp*.5);sfx('lvl')}
+  toast(POWERS[id].e+' '+POWERS[id].name+' !');
+}
+$('powBtn').onclick=usePower;
+
+// ================= GUIDE =================
+let guideFrom='menu';
+const gi=(e,t,d)=>`<div class="gi"><div class="e">${e}</div><div><b>${t}</b><small>${d}</small></div></div>`;
+const sec=(t,body,open)=>`<details${open?' open':''}><summary>${t}</summary>${body}</details>`;
+const fr=x=>String(x).replace('.',',');
+function renderGuide(){
+  const WS=Object.values(WEAP);let h='';
+  h+=sec('🎮 Comment jouer',[
+    gi('👆','Bouger','Pose le doigt n’importe où et glisse : un joystick apparaît. Ton héros attaque tout seul, toi tu esquives.'),
+    gi('🎯','Le but','Survivre 20 minutes. L’île a 5 zones de 4 minutes, de plus en plus dangereuses. Après la victoire, tu peux continuer en mode infini : 3 zones secrètes t’attendent.'),
+    gi('💎','Les cristaux','Chaque monstre lâche un cristal d’expérience (XP). Bleu = petit, vert = moyen, rouge = gros. Passe dessus pour le ramasser : la barre en haut se remplit.'),
+    gi('⭐','Monter de niveau','Barre pleine = nouveau niveau. Le jeu se met en pause et tu choisis une carte : nouvelle arme, nouvel objet ou amélioration. Maximum 6 armes et 6 objets.'),
+    gi('🔄','Relancer / Passer','« Relancer » change les cartes proposées (nombre limité, plus avec la boutique). « Passer » ne prend rien mais donne 2 pièces.'),
+    gi('🤖','Choix auto','Le jeu choisit les cartes à ta place, sans pause. Pratique à haut niveau. Active-le sur l’écran des cartes ou dans le menu.'),
+    gi('🌊','Vagues et boss','Toutes les minutes, une vague de monstres t’encercle. Toutes les 2 min 30, un boss arrive (barre rouge en haut).'),
+    gi('🪙','Les pièces','Tu gardes tes pièces à la fin de la partie, même si tu meurs. Tu en gagnes plus en survivant longtemps et en difficulté élevée. Elles servent dans la boutique.'),
+    gi('⏸️','Pause','Le bouton II en haut à droite met en pause et montre ton équipement, avec ✅ ou ❌ pour savoir s’il te manque l’objet d’évolution.')].join(''),true);
+  h+=sec('🌟 Les évolutions (important !)',`<p class="gp">Chaque arme peut devenir une <b>arme légendaire 🌟</b>, beaucoup plus puissante. Il faut 3 choses :</p>`+
+    gi('1️⃣','L’arme au niveau 8','Monte l’arme jusqu’à son niveau maximum (8).')+
+    gi('2️⃣','L’objet qui va avec','Chaque arme a un objet partenaire (liste ci-dessous). Il suffit de l’avoir au niveau 1.')+
+    gi('3️⃣','Ouvrir un coffre 🎁','Tue un boss (ou un monstre doré) et ramasse son coffre. Si les 2 conditions sont remplies, l’arme évolue !')+
+    `<p class="gp">Exemple : 🥥 Noix de coco niveau 8 + 🌸 Collier de fleurs + coffre = <b>Ceinture de Hina</b>.</p>`+
+    WS.map(w=>gi(w.e,w.evoName,`${w.e} ${w.name} niv. 8 + ${PASS[w.evo].e} ${PASS[w.evo].name}`)).join(''));
+  h+=sec(`⚔️ Les armes (${WS.length})`,WS.map(w=>gi(w.e,w.name,`${w.desc}.<br>Évolue avec ${PASS[w.evo].e} ${PASS[w.evo].name} → 🌟 ${w.evoName}`)).join(''));
+  h+=sec(`🎒 Les objets (${Object.keys(PASS).length})`,`<p class="gp">Les objets améliorent ton héros. Beaucoup servent aussi à faire évoluer une arme.</p>`+
+    Object.entries(PASS).map(([k,p])=>{const ev=evoOf(k);return gi(p.e,p.name,`${p.desc} (max niv. ${pmax(k)})${ev?`<br>Fait évoluer ${ev[1].e} ${ev[1].name}`:''}`)}).join(''));
+  h+=sec('♾️ Après le niveau max',`<p class="gp">Quand tout est au maximum, tu continues quand même à progresser :</p>`+
+    gi('★','Les étoiles','Une arme évoluée 🌟 peut être améliorée sans limite : chaque étoile ★ ajoute +15 % de dégâts à cette arme.')+
+    gi('✨','Les bénédictions','Quand il ne reste plus assez d’améliorations, des bénédictions apparaissent dans les cartes. Elles se cumulent à l’infini :')+
+    BLESS.map(b=>gi(b.e,b.name,b.desc)).join(''));
+  h+=sec('👾 Monstres et zones',STAGES.map((s,i)=>{const sp=s.name.indexOf(' ');return gi(s.name.slice(0,sp),s.name.slice(sp+1),`${i<5?'De '+i*4+' à '+(i+1)*4+' min':'Zone secrète du mode infini'} · ${s.pool.map(k=>ET[k].e).join(' ')}`)}).join('')+
+    gi('⚠️','À surveiller','🐗🦈 deviennent rouges puis foncent sur toi · 🐡 gonfle et explose · 🦑🐙 tirent de l’encre · 🪼 se divise en deux · cercle doré = monstre élite, plus fort, peut lâcher un coffre.')+
+    gi('👑','Les boss',BOSSES.map(b=>b.e+' '+b.name).join(' · ')));
+  h+=sec('🍍 Objets au sol',gi('🍍','Ananas','Soigne 30 % de tes PV.')+gi('🧲','Aimant','Attire tous les cristaux de la carte.')+gi('🪙','Pièce','+1 pièce.')+
+    gi('🎁','Coffre','Évolution ou améliorations. Une flèche 🎁 au bord de l’écran montre où il est.')+gi('💡','Ça clignote ?','L’objet va bientôt disparaître, dépêche-toi !'));
+  h+=sec('🛍️ La boutique',gi('📈','Bonus','Améliorations permanentes (PV, dégâts, vitesse…) pour toutes tes parties.')+
+    gi('🎭','Skins','Change l’apparence de ton héros. Ça ne change pas sa force.')+
+    gi('✨','Pouvoirs','Un pouvoir spécial à déclencher avec le bouton rond en bas à droite (touche E ou Espace sur ordinateur). Il se recharge après chaque utilisation.')+
+    Object.values(POWERS).map(p=>gi(p.e,p.name,`${p.desc} · recharge ${p.cd} s · 🪙 ${p.cost}`)).join(''));
+  h+=sec('🎚️ Difficultés',MODES.map((m,i)=>gi(['🙂','😤','💀'][i],m.name,`Monstres ×${fr(m.hp)} PV et ×${fr(m.dmg)} dégâts · pièces ×${fr(m.gold)}`)).join('')+
+    gi('🏆','Trophée','Un 🏆 apparaît à côté d’une difficulté quand tu l’as gagnée.'));
+  $('guideBox').innerHTML=h;
+}
+function openGuide(from){guideFrom=from;sfx('click');renderGuide();showOv('guideOv');$('guideOv').scrollTop=0}
+$('guideBtn').onclick=()=>openGuide('menu');
+$('pGuideBtn').onclick=()=>openGuide('pause');
+$('guideBack').onclick=()=>{if(guideFrom==='pause')showOv('pause');else{renderMenu();showOv('menu')}};
+
 // ================= APPLI (bouton retour Android, installation, hors-ligne) =================
 function backAction(){
-  if(state==='play')togglePause();
+  if(curOv==='guideOv')$('guideBack').click();
+  else if(state==='play')togglePause();
   else if(state==='pause')togglePause();
   else if(curOv==='shopOv'){renderMenu();showOv('menu')}
   else if(state==='menu'){const A=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;if(A)A.exitApp()}
