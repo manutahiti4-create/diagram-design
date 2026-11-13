@@ -215,3 +215,5 @@ a{color:var(--accent-strong)}
 @media(max-width:359px){.glance{grid-template-columns:1fr}.glance a{min-height:0;flex-direction:row;align-items:baseline;justify-content:space-between;flex-wrap:wrap}.quick-btn{font-size:.85rem;gap:4px;padding:0 6px}.home-who small{display:none}}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) .is-night{--il-sky:#1E2A33}}
 .device-status{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:var(--accent-soft);color:var(--accent-strong);font-weight:700;font-size:.85rem}.device-status.off{background:var(--warn-soft);color:var(--warn)}
+/* barre du bas remontée (évite les éléments ajoutés en bas d'écran : barre de gestes Android, bouton Netlify) */
+@media(max-width:899px){:root{--nav-h:84px}.nav{padding-bottom:calc(env(safe-area-inset-bottom) + 18px)}}

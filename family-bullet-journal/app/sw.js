@@ -1,5 +1,5 @@
 /* Service worker : met l'appli en cache pour qu'elle s'ouvre sans Internet. */
-const VERSION = 'cocon-v1';
+const VERSION = 'cocon-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ASSETS)));
