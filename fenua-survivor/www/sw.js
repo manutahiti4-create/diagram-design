@@ -1,6 +1,6 @@
 // Garde le jeu en mémoire pour qu'il marche sans Internet.
 // Change le numéro de VERSION à chaque mise à jour du jeu.
-const VERSION = 'fenua-v2';
+const VERSION = 'fenua-v3';
 const FILES = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 
