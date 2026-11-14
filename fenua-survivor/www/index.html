@@ -79,6 +79,12 @@ canvas{display:block;position:fixed;inset:0}
 #powBtn .t{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;font-weight:900;text-shadow:0 2px 3px #000}
 #powBtn.ready{border-color:#ffc23d;box-shadow:0 0 18px #ffc23d}
 #loadout{font-size:14px;opacity:.8}
+input{user-select:text;-webkit-user-select:text}
+.arow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.08);font-size:14px}
+.arow input{width:92px;padding:8px;border-radius:8px;border:0;font-size:15px;font-weight:700;text-align:right}
+.abtn{border:0;border-radius:10px;padding:8px 12px;background:rgba(255,255,255,.15);color:#fff;font-weight:800;font-size:14px}
+.abtn.on{background:#ffc23d;color:#3b2a00}.abtn.red{background:#c23a1f}
+.agrid{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 </style>
 </head>
 <body>
@@ -94,7 +100,7 @@ canvas{display:block;position:fixed;inset:0}
 <div id="toast"></div>
 
 <div class="ov" id="menu">
-  <h1>🌺 Fenua Survivor</h1>
+  <h1 id="title">🌺 Fenua Survivor</h1>
   <p>Survis 20 minutes aux monstres de l'île… ou plus en mode infini !</p>
   <div class="gold" style="margin-top:8px">🪙 <span id="mgold">0</span></div>
   <div class="lbl">Difficulté</div><div class="chips" id="modeChips"></div><p id="modeDesc" style="font-size:13px;opacity:.7"></p>
@@ -103,6 +109,7 @@ canvas{display:block;position:fixed;inset:0}
   <button class="big" id="playBtn">JOUER</button>
   <div class="btnrow"><button class="ghost" id="shopBtn">🛍️ Boutique</button><button class="ghost" id="guideBtn">📖 Guide</button></div>
   <p id="loadout"></p>
+  <button class="ghost" id="adminBtn" style="display:none">🛠️ Admin</button>
   <div class="chips" id="optChips"></div>
   <button class="ghost" id="installBtn" style="display:none">📲 Installer l'appli</button>
   <p style="font-size:13px;margin-top:12px;opacity:.65">Glisse le doigt pour bouger · ton héros attaque seul</p>
@@ -110,9 +117,10 @@ canvas{display:block;position:fixed;inset:0}
 <div class="ov" id="shopOv"><h2>🛍️ Boutique</h2><div class="gold">🪙 <span id="sgold">0</span></div><div class="chips" id="shopTabs"></div><p id="shopDesc" style="font-size:13px;margin-top:8px"></p><div class="shop" id="shopList"></div><button class="big" id="shopBack">RETOUR</button></div>
 <div class="ov" id="lvup"><h2>⭐ Niveau supérieur !</h2><div class="cards" id="cards"></div><div class="btnrow"><button class="ghost" id="rerollBtn">🔄 Relancer</button><button class="ghost" id="skipBtn">Passer (+2 🪙)</button><button class="ghost" id="banBtn">🚫 Bannir</button><button class="ghost" id="autoBtn">🤖 Auto</button></div></div>
 <div class="ov" id="chestOv"><h1>🎁</h1><h2 id="chestT">Coffre !</h2><div class="cards" id="chestList"></div><button class="big" id="chestBtn">SUPER !</button></div>
-<div class="ov" id="pause"><h2>⏸️ Pause</h2><div class="build" id="buildBox"></div><button class="big" id="resumeBtn">CONTINUER</button><button class="ghost" id="pGuideBtn">📖 Guide</button><button class="ghost" id="quitBtn">Abandonner</button></div>
+<div class="ov" id="pause"><h2>⏸️ Pause</h2><div class="build" id="buildBox"></div><button class="big" id="resumeBtn">CONTINUER</button><button class="ghost" id="pGuideBtn">📖 Guide</button><button class="ghost" id="pAdminBtn" style="display:none">🛠️ Admin</button><button class="ghost" id="quitBtn">Abandonner</button></div>
 <div class="ov" id="over"><h1 id="overT">💀 Tu es tombé…</h1><div class="stats" id="overStats"></div><p id="newRec" style="color:#ffc23d;font-weight:900;font-size:18px"></p><button class="big" id="againBtn">REJOUER</button><button class="ghost" id="menuBtn">Menu</button></div>
 <div class="ov" id="victory"><h1>🏆 VICTOIRE !</h1><p>Tu as survécu 20 minutes. L'île est sauvée… pour l'instant.</p><p style="margin-top:10px"><b>Mode infini :</b> les monstres deviennent de plus en plus forts sans limite. Jusqu'où iras-tu ?</p><button class="big" id="contBtn">CONTINUER</button><button class="ghost" id="endBtn">Terminer la partie</button></div>
+<div class="ov" id="adminOv"><h2>🛠️ Mode admin</h2><p style="font-size:13px">Triche activée : modifie ce que tu veux</p><div class="guide" id="adminBox"></div><button class="big" id="adminBack">RETOUR</button></div>
 <div class="ov" id="guideOv"><h2>📖 Guide du jeu</h2><p style="font-size:13px">Touche une section pour l'ouvrir</p><div class="guide" id="guideBox"></div><button class="big" id="guideBack">RETOUR</button></div>
 
 <script>
@@ -140,7 +148,7 @@ const MODES=[
  {name:'Enfer',hp:5,sp:1.9,dmg:2.4,gold:4.5},
  {name:'Apocalypse',hp:8,sp:2.2,dmg:3.2,gold:7},
  {name:'Légende',hp:13,sp:2.5,dmg:4.2,gold:11}];
-const locked=i=>i>=3&&!SAVE.won[i-1];
+const locked=i=>i>=3&&!SAVE.won[i-1]&&!SAVE.allModes;
 const fr=x=>String(x).replace('.',',');
 const STAGE_LEN=240,VICTORY=1200;
 const STAGES=[
@@ -290,6 +298,8 @@ const SKEY='fenuaSurv2';
 let SAVE={gold:0,shop:{},best:{},won:{},mode:0,w:'shell',sound:1,vib:1,skins:{toa:1},skin:'toa',pows:{},power:'',auto:0};
 try{const d=JSON.parse(localStorage.getItem(SKEY));if(d)SAVE=Object.assign(SAVE,d)}catch(e){}
 function persist(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE))}catch(e){}}
+const ADM=Object.assign({god:0,speed:1,nocd:0},SAVE.adm||{});
+function admSave(){SAVE.adm=ADM;persist()}
 
 // ================= SONS (générés, aucun fichier) =================
 let AC=null;const sLast={};
@@ -342,7 +352,7 @@ addEventListener('pointermove',e=>{if(joy&&joy.on&&e.pointerId===joy.id){joy.x=e
 function endJoy(e){if(joy&&e.pointerId===joy.id)joy.on=false}
 addEventListener('pointerup',endJoy);addEventListener('pointercancel',endJoy);
 const keys={};
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key==='Escape'||e.key==='p')togglePause();if(e.key===' '||e.key==='e')usePower()});
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;keys[e.key.toLowerCase()]=1;if(e.key==='Escape'||e.key==='p')togglePause();if(e.key===' '||e.key==='e')usePower()});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
 
 // ================= GRILLE (collisions rapides) =================
@@ -428,7 +438,7 @@ function kill(e){
   for(let i=0;i<4&&parts.length<220;i++){const a=Math.random()*TAU,s=rnd(60,160);parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.35,c:e.boss||e.elite?'#ffd36b':'#fff3c4'})}
 }
 function damagePlayer(d){
-  if(P.inv>0||state!=='play')return;
+  if(P.inv>0||state!=='play'||ADM.god)return;
   P.hp-=d*(1-Math.min(P.armor,.6));P.inv=.5;$('hurt').style.opacity=1;hurtUI=.2;
   vib(40);sfx('hurt');
   if(P.hp<=0){
@@ -652,7 +662,7 @@ let hudT=0;
 function hud(){
   $('xpf').style.width=Math.min(100,xp/need(lvl)*100)+'%';
   if((hudT++)%6)return;
-  $('lvl').textContent='Niv. '+lvl;$('time').textContent=fmtT(gt);$('kills').textContent='💀 '+kills;$('hgold').textContent='🪙 '+runGold;
+  $('lvl').textContent='Niv. '+lvl+(ADM.god||ADM.speed>1||ADM.nocd?' 🛠️':'');$('time').textContent=fmtT(gt);$('kills').textContent='💀 '+kills;$('hgold').textContent='🪙 '+runGold;
   let w='';for(const k in WEAP)if(wl[k])w+=`<span>${WEAP[k].e}${ult[k]?'👑':''}${wl[k]>9?'★'+(wl[k]-9):wl[k]>8?'🌟':wl[k]}</span>`;
   if(P.revives)w+=`<span>🗿${P.revives}</span>`;$('weaps').innerHTML=w;
   const b=en.find(e=>e.boss);if(b){$('bossbar').style.display='block';$('bossname').textContent=b.e+' '+b.name;$('bossf').style.width=Math.max(0,b.hp/b.mhp*100)+'%'}else $('bossbar').style.display='none';
@@ -660,7 +670,7 @@ function hud(){
 }
 
 // ================= NIVEAUX & COFFRES =================
-const OVS=['menu','shopOv','lvup','chestOv','pause','over','victory','guideOv'];
+const OVS=['menu','shopOv','lvup','chestOv','pause','over','victory','guideOv','adminOv'];
 let curOv=null;const LOCKED=['lvup','chestOv','over','victory'];
 function showOv(id){curOv=id;if(id&&id!=='menu')$('toast').style.display='none';OVS.forEach(o=>{const el=$(o);el.style.display=o===id?'flex':'none';el.classList.remove('lock')});
   // évite de choisir une carte par erreur quand on avait le doigt sur l'écran
@@ -742,6 +752,7 @@ function resume(){showOv(null);state='play';lastTime=performance.now()}
 function renderMenu(){
   $('mgold').textContent=SAVE.gold;
   if(locked(SAVE.mode))SAVE.mode=0;
+  $('adminBtn').style.display=SAVE.admin?'':'none';
   $('modeChips').innerHTML=MODES.map((m,i)=>{const lk=locked(i);return `<button class="chip ${i===SAVE.mode?'on':''}" data-m="${i}" style="${lk?'opacity:.45':''}">${lk?'🔒 ':SAVE.won[i]?'🏆 ':''}${m.name}</button>`}).join('');
   {const m=MODES[SAVE.mode];$('modeDesc').textContent=`Monstres ×${fr(m.hp)} PV et ×${fr(m.dmg)} dégâts · pièces ×${fr(m.gold)}`}
   $('wChips').innerHTML=Object.entries(WEAP).map(([k,w])=>`<button class="chip ${k===SAVE.w?'on':''}" data-w="${k}">${w.e} ${w.name}</button>`).join('');
@@ -783,7 +794,8 @@ $('shopList').onclick=e=>{
 $('shopBtn').onclick=()=>{renderShop();showOv('shopOv')};
 $('shopBack').onclick=()=>{renderMenu();showOv('menu')};
 function showMenu(){state='menu';$('hud').style.display='none';renderMenu();showOv('menu')}
-function start(){audio();newGame();$('powBtn').style.display=SAVE.power?'grid':'none';$('powE').textContent=SAVE.power?POWERS[SAVE.power].e:'';$('hud').style.display='block';showOv(null);state='play';lastTime=performance.now();hudT=0;toast(STAGES[0].name+' — Survis !')}
+function updatePowBtn(){$('powBtn').style.display=SAVE.power?'grid':'none';$('powE').textContent=SAVE.power?POWERS[SAVE.power].e:''}
+function start(){audio();newGame();updatePowBtn();$('hud').style.display='block';showOv(null);state='play';lastTime=performance.now();hudT=0;toast(STAGES[0].name+' — Survis !')}
 function gameOver(){
   state='over';joy.on=false;$('hurt').style.opacity=0;
   const earned=Math.floor((runGold+Math.floor(gt/60)*15+Math.floor(kills/40))*MODE.gold*P.goldm);
@@ -797,7 +809,7 @@ function togglePause(){
   if(state==='play'){state='pause';joy.on=false;
     let h='';for(const k in WEAP)if(wl[k]){const D=WEAP[k],E=PASS[D.evo];h+=wl[k]>8?`${D.e} <b>${D.evoName}</b> 🌟${wl[k]>9?' ★'+(wl[k]-9):''}${ult[k]?' 👑':` <span style="opacity:.7;font-size:13px">· ultime : ★5 ${wl[k]>=14?'✅':'❌'} ${E.e} max ${pl[D.evo]>=pmax(D.evo)?'✅':'❌'}</span>`}<br>`:`${D.e} ${D.name} niv. ${wl[k]}/8 <span style="opacity:.7;font-size:13px">· évo : ${E.e} ${pl[D.evo]?'✅':'❌'}</span><br>`}
     for(const k in PASS)if(pl[k])h+=`${PASS[k].e} ${PASS[k].name} niv. ${pl[k]}<br>`;
-    $('buildBox').innerHTML=h+`<span style="opacity:.6;font-size:13px">${STAGES[curStage].name}${gt>VICTORY?' · MODE INFINI':''}</span>`;showOv('pause')}
+    $('pAdminBtn').style.display=SAVE.admin?'':'none';$('buildBox').innerHTML=h+`<span style="opacity:.6;font-size:13px">${STAGES[curStage].name}${gt>VICTORY?' · MODE INFINI':''}</span>`;showOv('pause')}
   else if(state==='pause')resume();
 }
 $('playBtn').onclick=start;$('againBtn').onclick=start;$('menuBtn').onclick=showMenu;
@@ -809,7 +821,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='p
 
 // ================= POUVOIR SPÉCIAL =================
 function usePower(){
-  if(state!=='play'||!SAVE.power||powT>0)return;const id=SAVE.power;powT=POWERS[id].cd*powMult();
+  if(state!=='play'||!SAVE.power||powT>0)return;const id=SAVE.power;powT=ADM.nocd?0:POWERS[id].cd*powMult();
   if(id==='volcano'){for(const e of visibleEnemies()){if(e.boss){e.hp-=e.mhp*.15;e.flash=.2;if(e.hp<=0)kill(e)}else kill(e)}
     fx.push({t:'boom',x:P.x,y:P.y,l:.6,m:.6,rad:Math.max(W,H),col:'255,90,20'});sfx('boom');vib([60,40,120])}
   else if(id==='shield'){P.shield=6;P.inv=Math.max(P.inv,6);sfx('chest')}
@@ -874,9 +886,81 @@ $('guideBtn').onclick=()=>openGuide('menu');
 $('pGuideBtn').onclick=()=>openGuide('pause');
 $('guideBack').onclick=()=>{if(guideFrom==='pause')showOv('pause');else{renderMenu();showOv('menu')}};
 
+// ================= MODE ADMIN (5 taps sur le titre) =================
+let adminFrom='menu',titleTaps=0,titleT=0;
+$('title').onclick=()=>{const n=performance.now();if(n-titleT>1500)titleTaps=0;titleT=n;
+  if(++titleTaps>=5){titleTaps=0;SAVE.admin=1;persist();toast('🛠️ Mode admin activé');openAdmin('menu')}};
+function openAdmin(from){adminFrom=from;renderAdmin();showOv('adminOv');$('adminOv').scrollTop=0}
+function closeAdmin(){if(adminFrom==='pause'){state='play';togglePause()}else{renderMenu();showOv('menu')}}
+$('adminBtn').onclick=()=>openAdmin('menu');
+$('pAdminBtn').onclick=()=>openAdmin('pause');
+$('adminBack').onclick=closeAdmin;
+function renderAdmin(){
+  const open=[...document.querySelectorAll('#adminBox details')].map(d=>d.open);
+  const inGame=adminFrom==='pause',ab=(a,t,c='')=>`<button class="abtn ${c}" data-a="${a}">${t}</button>`;let h='';
+  h+=sec('💰 Argent et sauvegarde',
+    `<div class="arow"><span>🪙 Pièces</span><span><input type="number" id="admGold" value="${SAVE.gold}"> ${ab('gold','OK')}</span></div>`+
+    `<div class="agrid">${ab('g1k','+1 000 🪙')}${ab('g10k','+10 000 🪙')}${ab('g100k','+100 000 🪙')}</div>`+
+    `<div class="agrid">${ab('unlockAll','🎭 Tous les skins et pouvoirs')}${ab('shopMax','📈 Boutique au max')}${ab('shopZero','📉 Boutique à zéro')}${ab('modesAll','🔓 Toutes les difficultés',SAVE.allModes?'on':'')}${ab('resetRec','🏆 Effacer les records')}${ab('hide','🙈 Cacher le bouton admin')}${ab('wipe','🗑️ Tout effacer','red')}</div>`,true);
+  h+=sec('✨ Pouvoirs',`<div class="agrid">${Object.entries(POWERS).map(([id,p])=>ab('pw:'+id,p.e+' '+p.name,SAVE.power===id?'on':'')).join('')}</div>`+
+    `<div class="arow"><span>⏱️ Pouvoir sans recharge</span>${ab('nocd',ADM.nocd?'OUI':'NON',ADM.nocd?'on':'')}</div>`+(inGame?`<div class="agrid">${ab('powNow','🔄 Recharger maintenant')}</div>`:''),true);
+  h+=sec('🎮 Triches permanentes',`<div class="arow"><span>🛡️ Invincible</span>${ab('god',ADM.god?'OUI':'NON',ADM.god?'on':'')}</div>`+
+    `<div class="arow"><span>⏩ Vitesse du jeu</span><span>${[1,2,3].map(v=>ab('spd:'+v,'×'+v,ADM.speed===v?'on':'')).join(' ')}</span></div>`,true);
+  if(inGame){
+    h+=sec('🕹️ Partie en cours',
+      `<div class="arow"><span>⏱️ Aller à la minute</span><span><input type="number" id="admMin" value="${Math.floor(gt/60)}"> ${ab('time','OK')}</span></div>`+
+      `<div class="agrid">${ab('lv1','+1 niveau')}${ab('lv10','+10 niveaux')}${ab('heal','❤️ Soigner')}${ab('killAll','💀 Tuer tous les monstres')}${ab('boss','👑 Faire venir un boss')}${ab('chest','🎁 Donner un coffre')}${ab('gold100','+100 🪙 dans la partie')}</div>`+
+      `<div class="agrid">${ab('wAll','⚔️ Toutes les armes niv. 8')}${ab('evoAll','🌟 Tout évoluer')}${ab('ultAll','👑 Tout en ultime')}${ab('pAll','🎒 Tous les objets au max')}</div>`,true);
+    const ST=[['mhp','❤️ PV max'],['hp','💗 PV actuels'],['dmg','💪 Dégâts (×)'],['spd','🩴 Vitesse'],['cd','🥁 Recharge (plus petit = plus rapide)'],['area','🌸 Zone (×)'],['crit','🍀 Critique (0 à 1)'],['critm','💎 Dégâts critiques (×)'],['mag','🧲 Aimant (portée)'],['amount','🎯 Projectiles en plus'],['regen','🧴 Régénération (PV/s)'],['armor','🛡️ Armure (0 à 0,6)'],['xpm','📚 XP (×)'],['goldm','🪙 Pièces (×)'],['slow','💨 Vitesse des monstres (×)']];
+    h+=sec('📊 Statistiques du héros',ST.map(([k,n])=>`<div class="arow"><span>${n}</span><input type="number" step="any" data-st="${k}" value="${+(+P[k]).toFixed(2)}"></div>`).join('')+'<p class="gp">Change un chiffre puis touche ailleurs : c’est appliqué tout de suite.</p>');
+    h+=sec('⚔️ Armes',Object.entries(WEAP).map(([k,w])=>`<div class="arow"><span>${w.e} ${wl[k]>8?w.evoName:w.name} : <b>${wl[k]}</b>${ult[k]?' 👑':''}</span><span>${ab('w-:'+k,'−')} ${ab('w+:'+k,'+')} ${ab('wu:'+k,'👑',ult[k]?'on':'')}</span></div>`).join('')+
+      '<p class="gp">0 = pas l’arme · 8 = max · 9 = évoluée 🌟 · 10 et plus = étoiles ★ · 👑 = ultime</p>');
+    h+=sec('🎒 Objets',Object.entries(PASS).map(([k,o])=>`<div class="arow"><span>${o.e} ${o.name} : <b>${pl[k]}</b>/${pmax(k)}</span>${ab('p+:'+k,'+')}</div>`).join('')+'<p class="gp">« + » applique vraiment l’effet de l’objet.</p>');
+  }else h+=`<p class="gp">💡 Pendant une partie, ouvre l’admin depuis la pause (bouton II) pour modifier ton héros, tes armes, le temps…</p>`;
+  $('adminBox').innerHTML=h;
+  document.querySelectorAll('#adminBox details').forEach((d,i)=>{if(open[i]!==undefined)d.open=open[i]});
+}
+$('adminBox').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const [a,arg]=b.dataset.a.split(':');sfx('click');
+  switch(a){
+    case 'gold':SAVE.gold=Math.max(0,Math.floor(+$('admGold').value||0));break;
+    case 'g1k':SAVE.gold+=1000;break;case 'g10k':SAVE.gold+=10000;break;case 'g100k':SAVE.gold+=100000;break;
+    case 'unlockAll':for(const x of SKINS)SAVE.skins[x.id]=1;for(const k in POWERS)SAVE.pows[k]=1;toast('🎭 Tout est débloqué !');break;
+    case 'shopMax':for(const it of SHOP)SAVE.shop[it.id]=it.max;toast('📈 Boutique au max (prend effet à la prochaine partie)');break;
+    case 'shopZero':SAVE.shop={};break;
+    case 'modesAll':SAVE.allModes=SAVE.allModes?0:1;break;
+    case 'resetRec':if(confirm('Effacer tous les records et trophées ?')){SAVE.best={};SAVE.won={}}break;
+    case 'wipe':if(confirm('Effacer TOUTE la sauvegarde (pièces, boutique, skins, records) ?')){try{localStorage.removeItem(SKEY)}catch(_){}location.reload()}return;
+    case 'hide':SAVE.admin=0;persist();toast('🙈 Caché. 5 taps sur le titre pour le retrouver.');closeAdmin();return;
+    case 'pw':SAVE.pows[arg]=1;SAVE.power=SAVE.power===arg?'':arg;if(adminFrom==='pause')updatePowBtn();break;
+    case 'nocd':ADM.nocd=ADM.nocd?0:1;if(ADM.nocd)powT=0;break;
+    case 'powNow':powT=0;break;
+    case 'god':ADM.god=ADM.god?0:1;break;
+    case 'spd':ADM.speed=+arg;break;
+    case 'time':{gt=Math.max(0,+$('admMin').value||0)*60;nextWave=(Math.floor(gt/60)+1)*60;nextBoss=(Math.floor(gt/120)+1)*120;if(gt>=VICTORY)won=true;break}
+    case 'lv1':lvl+=1;lvQueue+=1;break;case 'lv10':lvl+=10;lvQueue+=10;break;
+    case 'heal':P.hp=P.mhp;break;
+    case 'killAll':for(const e of en)kill(e);break;
+    case 'boss':spawnBoss();break;
+    case 'chest':chestQueue++;break;
+    case 'gold100':runGold+=100;break;
+    case 'wAll':for(const k in WEAP)if(wl[k]<8)wl[k]=8;break;
+    case 'evoAll':for(const k in WEAP)if(wl[k]<9)wl[k]=9;break;
+    case 'ultAll':for(const k in WEAP){if(wl[k]<9)wl[k]=9;ult[k]=1}break;
+    case 'pAll':for(const k in PASS)while(pl[k]<pmax(k))apply({kind:'p',k});break;
+    case 'w-':wl[arg]=Math.max(0,wl[arg]-1);if(!wl[arg]){ult[arg]=0;if(arg==='tiki')tot=[];if(arg==='cyclone')cyc=[];if(arg==='vana')mines=[];if(arg==='nohu'){pools=[];for(const e of en)e.psn=0}}break;
+    case 'w+':wl[arg]++;break;
+    case 'wu':ult[arg]=ult[arg]?0:1;if(ult[arg]&&wl[arg]<9)wl[arg]=9;break;
+    case 'p+':if(pl[arg]<pmax(arg))apply({kind:'p',k:arg});break;
+  }
+  admSave();renderAdmin();
+};
+$('adminBox').onchange=e=>{const i=e.target;if(!i.dataset||!i.dataset.st)return;const v=parseFloat(String(i.value).replace(',','.'));if(isNaN(v))return;
+  P[i.dataset.st]=v;if(i.dataset.st==='mhp')P.hp=Math.min(P.hp,v);if(i.dataset.st==='hp')P.hp=Math.min(v,P.mhp);toast('✅ Modifié')};
+
 // ================= APPLI (bouton retour Android, installation, hors-ligne) =================
 function backAction(){
   if(curOv==='guideOv')$('guideBack').click();
+  else if(curOv==='adminOv')closeAdmin();
   else if(state==='play')togglePause();
   else if(state==='pause')togglePause();
   else if(curOv==='shopOv'){renderMenu();showOv('menu')}
@@ -892,7 +976,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&!window.C
 // ================= BOUCLE =================
 newGame();showMenu();
 function loop(now){
-  if(state==='play'){const dt=Math.max(0,Math.min((now-lastTime)/1000,.05));lastTime=now;update(dt);if(state!=='menu')hud()}else lastTime=now;
+  if(state==='play'){const dt=Math.max(0,Math.min((now-lastTime)/1000,.05));lastTime=now;for(let i=0;i<ADM.speed&&state==='play';i++)update(dt);if(state!=='menu')hud()}else lastTime=now;
   if(state!=='menu'&&state!=='shopOv')draw();else{ctx.fillStyle='#0b3d4a';ctx.fillRect(0,0,W,H)}
   requestAnimationFrame(loop);
 }
