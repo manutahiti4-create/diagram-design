@@ -120,6 +120,9 @@ input{user-select:text;-webkit-user-select:text}
 <div class="ov" id="pause"><h2>⏸️ Pause</h2><div class="build" id="buildBox"></div><button class="big" id="resumeBtn">CONTINUER</button><button class="ghost" id="pGuideBtn">📖 Guide</button><button class="ghost" id="pAdminBtn" style="display:none">🛠️ Admin</button><button class="ghost" id="quitBtn">Abandonner</button></div>
 <div class="ov" id="over"><h1 id="overT">💀 Tu es tombé…</h1><div class="stats" id="overStats"></div><p id="newRec" style="color:#ffc23d;font-weight:900;font-size:18px"></p><button class="big" id="againBtn">REJOUER</button><button class="ghost" id="menuBtn">Menu</button></div>
 <div class="ov" id="victory"><h1>🏆 VICTOIRE !</h1><p>Tu as survécu 20 minutes. L'île est sauvée… pour l'instant.</p><p style="margin-top:10px"><b>Mode infini :</b> les monstres deviennent de plus en plus forts sans limite. Jusqu'où iras-tu ?</p><button class="big" id="contBtn">CONTINUER</button><button class="ghost" id="endBtn">Terminer la partie</button></div>
+<div class="ov" id="codeOv"><h2 id="codeT">🔑 Code secret</h2><p id="codeP"></p>
+  <input id="codeIn" type="password" autocomplete="off" style="font-size:24px;padding:12px;border-radius:12px;border:0;width:240px;text-align:center;margin-top:12px;letter-spacing:4px">
+  <div class="btnrow" style="margin-top:6px"><button class="ghost" id="codeCancel">Annuler</button><button class="big" id="codeOk" style="padding:12px 34px">OK</button></div></div>
 <div class="ov" id="adminOv"><h2>🛠️ Mode admin</h2><p style="font-size:13px">Triche activée : modifie ce que tu veux</p><div class="guide" id="adminBox"></div><button class="big" id="adminBack">RETOUR</button></div>
 <div class="ov" id="guideOv"><h2>📖 Guide du jeu</h2><p style="font-size:13px">Touche une section pour l'ouvrir</p><div class="guide" id="guideBox"></div><button class="big" id="guideBack">RETOUR</button></div>
 
@@ -327,13 +330,13 @@ function sfx(k){
 function vib(ms){if(!SAVE.vib)return;try{navigator.vibrate&&navigator.vibrate(ms)}catch(_){}}
 
 // ================= ÉTAT =================
-let state='menu',MODE,P,en,proj,eb,gems,picks,fx,parts,rings,blasts,gt,kills,lvl,xp,wl,pl,tm,spawnAcc,nextBoss,bossIdx,nextWave,lvQueue,joy,lastTime,hurtUI=0,curStage,won,runGold,rerolls,chestQueue,tot,cyc,frz,powT,heroE,mines,pools,ratk,ult,banned,banishes,banMode,PWR=0,lastEC=0;
+let state='menu',MODE,P,en,proj,eb,gems,picks,fx,parts,rings,blasts,gt,kills,lvl,xp,wl,pl,tm,spawnAcc,nextBoss,bossIdx,nextWave,lvQueue,joy,lastTime,hurtUI=0,curStage,won,runGold,rerolls,chestQueue,tot,cyc,frz,powT,heroE,mines,pools,ratk,ult,banned,banishes,banMode,PWR=0,lastEC=0,cheated=false;
 function newGame(){
   MODE=MODES[SAVE.mode];const g=id=>SAVE.shop[id]||0;
   P={x:0,y:0,r:14,mhp:120*(1+.1*g('hp')),spd:155*(1+.05*g('spd')),mag:90*(1+.15*g('mag')),regen:.3*g('regen'),dmg:1+.06*g('dmg'),cd:1-.03*g('cd'),area:1+.05*g('area'),amount:0,slow:1,thorn:0,shield:0,critm:2,dur:1,pspd:1,curse:0,frenzy:0,
      armor:.03*g('arm'),crit:.05+.04*g('luck'),luck:0,xpm:1+.08*g('xp'),goldm:1+.1*g('gold'),revives:g('revive'),inv:0,face:1,fx:1,fy:0};
   P.hp=P.mhp;rerolls=1+g('reroll');banishes=g('banish');P.amount=g('amount');P.critm=2+.15*g('critd');
-  en=[];proj=[];eb=[];gems=[];picks=[];fx=[];parts=[];rings=[];blasts=[];tot=[];cyc=[];frz=0;powT=0;mines=[];pools=[];ratk=0;ult={};banned=new Set();banMode=false;PWR=0;lastEC=0;heroE=(SKINS.find(s=>s.id===SAVE.skin)||SKINS[0]).e;
+  en=[];proj=[];eb=[];gems=[];picks=[];fx=[];parts=[];rings=[];blasts=[];tot=[];cyc=[];frz=0;powT=0;mines=[];pools=[];ratk=0;ult={};banned=new Set();banMode=false;PWR=0;lastEC=0;cheated=!!(ADM.god||ADM.speed>1||ADM.nocd);heroE=(SKINS.find(s=>s.id===SAVE.skin)||SKINS[0]).e;
   gt=0;kills=0;lvl=1;xp=0;spawnAcc=0;nextBoss=120;bossIdx=0;nextWave=60;lvQueue=0;curStage=0;won=false;runGold=0;chestQueue=0;
   wl={};tm={};for(const k in WEAP){wl[k]=0;tm[k]=0.3}wl[SAVE.w]=1+g('startlv');
   pl={};for(const k in PASS)pl[k]=0;
@@ -548,7 +551,7 @@ function update(dt){
 
   // zones / victoire
   const st=gt<VICTORY?Math.min(Math.floor(gt/STAGE_LEN),4):5+Math.floor((gt-VICTORY)/STAGE_LEN)%3;if(st!==curStage){curStage=st;toast(STAGES[st].name)}
-  if(!won&&gt>=VICTORY){won=true;SAVE.won[SAVE.mode]=1;persist();state='victory';joy.on=false;$('hurt').style.opacity=0;sfx('chest');showOv('victory');return}
+  if(!won&&gt>=VICTORY){won=true;if(!cheated)SAVE.won[SAVE.mode]=1;persist();state='victory';joy.on=false;$('hurt').style.opacity=0;sfx('chest');showOv('victory');return}
 
   // apparitions
   spawnAcc+=dt*Math.min(.9+gt/14,50)*MODE.sp*(1+P.curse);
@@ -670,7 +673,7 @@ function hud(){
 }
 
 // ================= NIVEAUX & COFFRES =================
-const OVS=['menu','shopOv','lvup','chestOv','pause','over','victory','guideOv','adminOv'];
+const OVS=['menu','shopOv','lvup','chestOv','pause','over','victory','guideOv','adminOv','codeOv'];
 let curOv=null;const LOCKED=['lvup','chestOv','over','victory'];
 function showOv(id){curOv=id;if(id&&id!=='menu')$('toast').style.display='none';OVS.forEach(o=>{const el=$(o);el.style.display=o===id?'flex':'none';el.classList.remove('lock')});
   // évite de choisir une carte par erreur quand on avait le doigt sur l'écran
@@ -800,7 +803,8 @@ function gameOver(){
   state='over';joy.on=false;$('hurt').style.opacity=0;
   const earned=Math.floor((runGold+Math.floor(gt/60)*15+Math.floor(kills/40))*MODE.gold*P.goldm);
   SAVE.gold+=earned;const b=SAVE.best[SAVE.mode]||{t:0,k:0,l:0};let rec='';
-  if(gt>b.t){rec='🏆 Nouveau record !';b.t=gt}b.k=Math.max(b.k,kills);b.l=Math.max(b.l,lvl);SAVE.best[SAVE.mode]=b;persist();
+  if(cheated)rec='🛠️ Partie avec triche : record non compté';
+  else{if(gt>b.t){rec='🏆 Nouveau record !';b.t=gt}b.k=Math.max(b.k,kills);b.l=Math.max(b.l,lvl);SAVE.best[SAVE.mode]=b}persist();
   $('overT').textContent=won?'🏆 Fin de la partie':'💀 Tu es tombé…';
   $('overStats').innerHTML=`<div><span>⏱️ Temps survécu</span><span>${fmtT(gt)}</span></div><div><span>💀 Monstres battus</span><span>${kills}</span></div><div><span>⭐ Niveau atteint</span><span>${lvl}</span></div><div><span>🪙 Pièces gagnées</span><span style="color:#ffc23d">+${earned}</span></div><div><span>🏆 Record</span><span>${fmtT(b.t)}</span></div>`;
   $('newRec').textContent=rec;showOv('over');
@@ -878,7 +882,7 @@ function renderGuide(){
     gi('✨','Pouvoirs','Un pouvoir spécial à déclencher avec le bouton rond en bas à droite (touche E ou Espace sur ordinateur). Il se recharge après chaque utilisation.')+
     Object.values(POWERS).map(p=>gi(p.e,p.name,`${p.desc} · recharge ${p.cd} s · 🪙 ${p.cost}`)).join(''));
   h+=sec('🎚️ Difficultés',MODES.map((m,i)=>gi(['🙂','😤','💀','🔥','☠️','👑'][i],m.name,`Monstres ×${fr(m.hp)} PV et ×${fr(m.dmg)} dégâts · pièces ×${fr(m.gold)}`)).join('')+
-    gi('🏆','Trophée','Un 🏆 apparaît à côté d’une difficulté quand tu l’as gagnée.')+gi('🔒','Débloquer','Enfer, Apocalypse et Légende se débloquent en gagnant la difficulté d’avant (survivre 20 min).'));
+    gi('🏆','Trophée','Un 🏆 apparaît à côté d’une difficulté quand tu l’as gagnée.')+gi('🛠️','Mode admin','Mode triche caché, protégé par ton code secret. Les parties avec triche ne comptent pas pour les records.')+gi('🔒','Débloquer','Enfer, Apocalypse et Légende se débloquent en gagnant la difficulté d’avant (survivre 20 min).'));
   $('guideBox').innerHTML=h;
 }
 function openGuide(from){guideFrom=from;sfx('click');renderGuide();showOv('guideOv');$('guideOv').scrollTop=0}
@@ -887,21 +891,45 @@ $('pGuideBtn').onclick=()=>openGuide('pause');
 $('guideBack').onclick=()=>{if(guideFrom==='pause')showOv('pause');else{renderMenu();showOv('menu')}};
 
 // ================= MODE ADMIN (5 taps sur le titre) =================
-let adminFrom='menu',titleTaps=0,titleT=0;
-$('title').onclick=()=>{const n=performance.now();if(n-titleT>1500)titleTaps=0;titleT=n;
-  if(++titleTaps>=5){titleTaps=0;SAVE.admin=1;persist();toast('🛠️ Mode admin activé');openAdmin('menu')}};
+let adminFrom='menu',titleTaps=0,titleT=0,admUnlocked=false,codeMode='',codeFirst='',codeNext=null,codeFrom='menu';
+// le code n'est jamais gardé en clair, seulement une empreinte
+const hsh=t=>{let h=5381;for(const c of String(t).trim().toLowerCase())h=((h*33)^c.charCodeAt(0))>>>0;return 'h'+h.toString(16)};
+$('title').onclick=()=>{const n=performance.now();if(n-titleT>1500)titleTaps=0;titleT=n;if(++titleTaps>=5){titleTaps=0;tryAdmin('menu')}};
+function tryAdmin(from){const go=()=>enterAdmin(from);if(admUnlocked)return go();askCode(SAVE.adminCode?'check':'new',go,from)}
+function enterAdmin(from){
+  if(!SAVE.admin){const snap=Object.assign({},SAVE);delete snap.preAdmin;delete snap.adm;delete snap.adminCode;
+    SAVE.admin=1;SAVE.preAdmin={t:Date.now(),d:JSON.stringify(snap)};persist();toast('🛠️ Mode admin activé')}
+  if(from==='pause')cheated=true;openAdmin(from)}
+function askCode(mode,next,from){codeMode=mode;codeNext=next;codeFrom=from;codeFirst='';$('codeIn').value='';
+  $('codeT').textContent=mode==='check'?'🔑 Code secret':'🔑 Nouveau code secret';
+  $('codeP').textContent=mode==='check'?'Tape ton code pour ouvrir le mode admin.':'Choisis ton code secret (au moins 4 caractères). Ne l’oublie pas !';
+  showOv('codeOv');setTimeout(()=>{try{$('codeIn').focus()}catch(_){}},150)}
+function codeBack(){if(codeFrom==='pause'){state='play';togglePause()}else if(codeFrom==='adminOv')showOv('adminOv');else{renderMenu();showOv('menu')}}
+$('codeOk').onclick=()=>{const v=$('codeIn').value.trim();$('codeIn').value='';
+  if(codeMode==='check'){if(hsh(v)===SAVE.adminCode){admUnlocked=true;codeNext()}else{toast('❌ Mauvais code');vib(120)}return}
+  if(v.length<4){toast('Au moins 4 caractères');return}
+  if(!codeFirst){codeFirst=v;$('codeP').textContent='Retape le même code pour confirmer.';$('codeIn').focus();return}
+  if(v!==codeFirst){codeFirst='';toast('❌ Les deux codes sont différents');$('codeP').textContent='Recommence : choisis ton code (au moins 4 caractères).';return}
+  SAVE.adminCode=hsh(v);persist();admUnlocked=true;toast('✅ Code enregistré');codeNext()};
+$('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('codeOk').click()});
+$('codeCancel').onclick=codeBack;
 function openAdmin(from){adminFrom=from;renderAdmin();showOv('adminOv');$('adminOv').scrollTop=0}
 function closeAdmin(){if(adminFrom==='pause'){state='play';togglePause()}else{renderMenu();showOv('menu')}}
-$('adminBtn').onclick=()=>openAdmin('menu');
-$('pAdminBtn').onclick=()=>openAdmin('pause');
+$('adminBtn').onclick=()=>tryAdmin('menu');
+$('pAdminBtn').onclick=()=>tryAdmin('pause');
 $('adminBack').onclick=closeAdmin;
 function renderAdmin(){
   const open=[...document.querySelectorAll('#adminBox details')].map(d=>d.open);
   const inGame=adminFrom==='pause',ab=(a,t,c='')=>`<button class="abtn ${c}" data-a="${a}">${t}</button>`;let h='';
+  {const t=SAVE.preAdmin?new Date(SAVE.preAdmin.t):null;
+   h+=sec('🔒 Quitter le mode admin',
+    (t?`<p class="gp">Mode admin activé le ${t.toLocaleDateString('fr-FR')} à ${t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}. Une copie de ta sauvegarde a été gardée à ce moment-là.</p>`:'')+
+    `<div class="agrid">${t?ab('restore','↩️ Tout remettre comme avant les triches','red'):''}${ab('disable','🔒 Désactiver l’admin (garder tout)')}${ab('newcode','🔑 Changer le code secret')}</div>`+
+    `<p class="gp"><b>↩️ Tout remettre</b> : tes pièces, ta boutique, tes skins, tes pouvoirs et tes records redeviennent exactement comme avant l’activation, et le mode admin se ferme.<br><b>🔒 Désactiver</b> : coupe les triches et cache le mode admin, mais garde ta sauvegarde actuelle.</p>`,true)}
   h+=sec('💰 Argent et sauvegarde',
     `<div class="arow"><span>🪙 Pièces</span><span><input type="number" id="admGold" value="${SAVE.gold}"> ${ab('gold','OK')}</span></div>`+
     `<div class="agrid">${ab('g1k','+1 000 🪙')}${ab('g10k','+10 000 🪙')}${ab('g100k','+100 000 🪙')}</div>`+
-    `<div class="agrid">${ab('unlockAll','🎭 Tous les skins et pouvoirs')}${ab('shopMax','📈 Boutique au max')}${ab('shopZero','📉 Boutique à zéro')}${ab('modesAll','🔓 Toutes les difficultés',SAVE.allModes?'on':'')}${ab('resetRec','🏆 Effacer les records')}${ab('hide','🙈 Cacher le bouton admin')}${ab('wipe','🗑️ Tout effacer','red')}</div>`,true);
+    `<div class="agrid">${ab('unlockAll','🎭 Tous les skins et pouvoirs')}${ab('shopMax','📈 Boutique au max')}${ab('shopZero','📉 Boutique à zéro')}${ab('modesAll','🔓 Toutes les difficultés',SAVE.allModes?'on':'')}${ab('resetRec','🏆 Effacer les records')}${ab('wipe','🗑️ Tout effacer','red')}</div>`,true);
   h+=sec('✨ Pouvoirs',`<div class="agrid">${Object.entries(POWERS).map(([id,p])=>ab('pw:'+id,p.e+' '+p.name,SAVE.power===id?'on':'')).join('')}</div>`+
     `<div class="arow"><span>⏱️ Pouvoir sans recharge</span>${ab('nocd',ADM.nocd?'OUI':'NON',ADM.nocd?'on':'')}</div>`+(inGame?`<div class="agrid">${ab('powNow','🔄 Recharger maintenant')}</div>`:''),true);
   h+=sec('🎮 Triches permanentes',`<div class="arow"><span>🛡️ Invincible</span>${ab('god',ADM.god?'OUI':'NON',ADM.god?'on':'')}</div>`+
@@ -930,12 +958,17 @@ $('adminBox').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;cons
     case 'modesAll':SAVE.allModes=SAVE.allModes?0:1;break;
     case 'resetRec':if(confirm('Effacer tous les records et trophées ?')){SAVE.best={};SAVE.won={}}break;
     case 'wipe':if(confirm('Effacer TOUTE la sauvegarde (pièces, boutique, skins, records) ?')){try{localStorage.removeItem(SKEY)}catch(_){}location.reload()}return;
-    case 'hide':SAVE.admin=0;persist();toast('🙈 Caché. 5 taps sur le titre pour le retrouver.');closeAdmin();return;
+    case 'restore':{if(!SAVE.preAdmin||!confirm('Remettre ta sauvegarde comme avant les triches ? La partie en cours sera arrêtée.'))return;
+      const code=SAVE.adminCode,old=JSON.parse(SAVE.preAdmin.d);for(const k of Object.keys(SAVE))delete SAVE[k];
+      Object.assign(SAVE,{gold:0,shop:{},best:{},won:{},mode:0,w:'shell',sound:1,vib:1,skins:{toa:1},skin:'toa',pows:{},power:'',auto:0},old,{adminCode:code,admin:0,preAdmin:null,allModes:0,adm:{god:0,speed:1,nocd:0}});
+      persist();location.reload();return}
+    case 'disable':ADM.god=0;ADM.speed=1;ADM.nocd=0;SAVE.allModes=0;SAVE.admin=0;SAVE.preAdmin=null;admUnlocked=false;admSave();toast('🔒 Mode admin désactivé');closeAdmin();return;
+    case 'newcode':askCode('new',()=>openAdmin(adminFrom),'adminOv');return;
     case 'pw':SAVE.pows[arg]=1;SAVE.power=SAVE.power===arg?'':arg;if(adminFrom==='pause')updatePowBtn();break;
-    case 'nocd':ADM.nocd=ADM.nocd?0:1;if(ADM.nocd)powT=0;break;
+    case 'nocd':ADM.nocd=ADM.nocd?0:1;if(ADM.nocd){powT=0;cheated=true}break;
     case 'powNow':powT=0;break;
-    case 'god':ADM.god=ADM.god?0:1;break;
-    case 'spd':ADM.speed=+arg;break;
+    case 'god':ADM.god=ADM.god?0:1;if(ADM.god)cheated=true;break;
+    case 'spd':ADM.speed=+arg;if(ADM.speed>1)cheated=true;break;
     case 'time':{gt=Math.max(0,+$('admMin').value||0)*60;nextWave=(Math.floor(gt/60)+1)*60;nextBoss=(Math.floor(gt/120)+1)*120;if(gt>=VICTORY)won=true;break}
     case 'lv1':lvl+=1;lvQueue+=1;break;case 'lv10':lvl+=10;lvQueue+=10;break;
     case 'heal':P.hp=P.mhp;break;
@@ -961,6 +994,7 @@ $('adminBox').onchange=e=>{const i=e.target;if(!i.dataset||!i.dataset.st)return;
 function backAction(){
   if(curOv==='guideOv')$('guideBack').click();
   else if(curOv==='adminOv')closeAdmin();
+  else if(curOv==='codeOv')codeBack();
   else if(state==='play')togglePause();
   else if(state==='pause')togglePause();
   else if(curOv==='shopOv'){renderMenu();showOv('menu')}
