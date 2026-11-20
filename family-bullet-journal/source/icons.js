@@ -8,6 +8,6 @@ for (const [name,size,pad,round] of [['icon-192',192,.16,true],['icon-512',512,.
   await p.setViewportSize({width:size,height:size});
   const r=round?size*0.22:0;
   await p.setContent(`<body style="margin:0;background:transparent"><div style="${vars};width:${size}px;height:${size}px;background:#DDE7E1;border-radius:${r}px;display:flex;align-items:center;justify-content:center"><div style="width:${size*(1-2*pad)}px;height:${size*(1-2*pad)}px">${house.replace('<svg','<svg width="100%" height="100%"')}</div></div></body>`);
-  await p.screenshot({path:`../app/icons/${name}.png`,omitBackground:true});
+  await p.screenshot({path:`../app/public/icons/${name}.png`,omitBackground:true});
 }
 await b.close();})();

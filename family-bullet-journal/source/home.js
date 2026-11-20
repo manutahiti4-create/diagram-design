@@ -35,6 +35,7 @@ function FbjHome({ t, loading, onNote }) {
         J_.jsx("p", { className: "home-eyebrow", children: "Notre petit cocon" }),
         J_.jsx("h1", { children: t.greeting + " " + t.name }),
         J_.jsxs("p", { className: "home-date", children: [Oi(t.date), loading && J_.jsx("span", { className: "sr-only", children: " (mise à jour…)" })] }),
+        typeof FbjSyncDot !== "undefined" && J_.jsx(FbjSyncDot, {}),
       ] }),
       J_.jsxs("div", { className: "home-tools", children: [
         J_.jsx("a", { className: "icon-btn settings-shortcut", href: nt("settings"), "aria-label": "Réglages", children: J_.jsx(z, { name: "settings" }) }),

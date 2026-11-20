@@ -2,7 +2,7 @@
 import os, sys
 D = os.path.dirname(os.path.abspath(__file__))
 P = lambda f: os.path.join(D, f)
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(D, '..', 'app')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(D, '..', 'app', 'public')
 os.makedirs(OUT, exist_ok=True)
 
 html = open(P('build/cocon.html')).read()
@@ -22,7 +22,7 @@ rep('function W1(){', 'function W1(){return(0,_.jsx)(FbjPrivacy,{})}function W1_
 rep('(0,_.jsx)(J1,{}),', '(0,_.jsx)(J1,{}),(0,_.jsx)(FbjBackup,{}),')
 # écran de bienvenue
 rep('"Ton compte Claude"," n\'est pas encore rattach\\xE9 au journal."', '"Bienvenue dans votre cocon !"," Indique ton pr\\xE9nom pour cr\\xE9er ton profil sur ce t\\xE9l\\xE9phone."')
-rep('children:"Rejoindre le journal"}),!1', 'children:"Cr\\xE9er mon profil"}),(0,k.jsx)(FbjRestoreLink,{})')
+rep('children:"Rejoindre le journal"}),!1', 'children:"Cr\\xE9er mon profil"}),(0,k.jsx)(FbjJoinLink,{}),(0,k.jsx)(FbjRestoreLink,{})')
 rep('"Seuls les deux premiers comptes peuvent rejoindre le journal."', '"Tes donn\\xE9es restent sur ce t\\xE9l\\xE9phone et fonctionnent sans Internet."')
 html = js
 lines = html.split('\n')

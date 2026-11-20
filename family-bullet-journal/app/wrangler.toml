@@ -1,0 +1,9 @@
+# Configuration Cloudflare Pages : site statique (public/) + API (functions/) + base D1
+name = "notre-petit-cocon"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "notre-petit-cocon"
+database_id = "53d554c0-e571-4c68-86f9-3733c8c5ca9b"
